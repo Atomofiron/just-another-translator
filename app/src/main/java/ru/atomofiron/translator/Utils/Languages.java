@@ -1,10 +1,13 @@
 package ru.atomofiron.translator.Utils;
 
+import com.google.gson.JsonObject;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import ru.atomofiron.translator.I;
 
@@ -31,13 +34,26 @@ public class Languages {
 				lang.dirs.add(codes[1]);
 			}
 
-			// todo check this and remove
-			for (Language l : languages)
-				if (l.dirs.isEmpty())
-					I.Log("! ! ! WTF: "+l.name+" - NO DIRS");
+			checkIfNull();
 		} catch (JSONException e) {
 			I.Log(e.toString());
 		}
+	}
+
+	public Languages(List<String> dirs, JsonObject langsObj) {
+		Language lang;
+		for (int i = 0; i < dirs.size(); i++) {
+			String[] codes = dirs.get(i).split("-");
+
+			lang = getByCode(codes[0]);
+			if (lang == null) {
+				lang = new Language(codes[0], langsObj.get(codes[0]).getAsString());
+				languages.add(lang);
+			}
+			lang.dirs.add(codes[1]);
+		}
+
+		checkIfNull();
 	}
 
 	public int size() {
@@ -70,6 +86,13 @@ public class Languages {
 				return i;
 
 		return -1;
+	}
+
+	private void checkIfNull() {
+		// todo check this and remove
+		for (Language l : languages)
+			if (l.dirs.isEmpty())
+				I.Log("! ! ! WTF: "+l.name+" - NO DIRS");
 	}
 
 	public class Language {

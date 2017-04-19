@@ -18,12 +18,17 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import ru.atomofiron.translator.App;
 import ru.atomofiron.translator.CustomViews.ExEditText;
 import ru.atomofiron.translator.I;
 import ru.atomofiron.translator.Adapters.InputAdapter;
 import ru.atomofiron.translator.R;
+import ru.atomofiron.translator.Utils.AsyncJob;
 import ru.atomofiron.translator.Utils.Languages;
-import ru.atomofiron.translator.Utils.LanguagesLoader;
+import ru.atomofiron.translator.Utils.Retrofit.LangsResponse;
 
 public class MainFragment extends Fragment implements InputAdapter.OnSlideListener, TextView.OnEditorActionListener, View.OnClickListener {
 
@@ -48,11 +53,32 @@ public class MainFragment extends Fragment implements InputAdapter.OnSlideListen
 		ac = getActivity();
 		sp = I.SP(ac);
 
-		new LanguagesLoader("ru", new LanguagesLoader.OnLoadedListener() {
+		/*new LanguagesLoader("ru", new LanguagesLoader.OnLoadedListener() {
 			public void onLoaded(Languages languages) {
 				initTranslator(languages);
 			}
-		}).execute();
+		}).execute();*/
+
+		App.getApi().getLangs(I.API_KEY, "ru").enqueue(new Callback<LangsResponse>() {
+			@Override
+			public void onResponse(Call<LangsResponse> call, final Response<LangsResponse> response) {
+				new AsyncJob(new AsyncJob.Job() { // для асинхронного парсинга и получения объекта Languages
+					Languages languages;
+					public void onAsyncJobStart() {
+						LangsResponse langsResponse = response.body();
+						languages = new Languages(langsResponse.getDirs(), langsResponse.getLangs());
+					}
+					public void onJobEnd() {
+						initTranslator(this.languages);
+					}
+				}).execute();
+			}
+
+			@Override
+			public void onFailure(Call<LangsResponse> call, Throwable t) {
+				I.Log("onFailure(): "+t);
+			}
+		});
 
 		currentFirstLangCode = sp.getString(I.PREF_FIRST_LANG_CODE, "");
 		currentSecondLangCode = sp.getString(I.PREF_SECOND_LANG_CODE, "");
