@@ -12,7 +12,7 @@
         android:id="@+id/swap_langs"
         app:srcCompat="@drawable/ic_arrows"
         android:layout_centerInParent="true"
-        style="?borderlessButtonStyle"
+        android:background="?android:attr/selectableItemBackground"
         />
     <Button
         android:layout_width="wrap_content"
