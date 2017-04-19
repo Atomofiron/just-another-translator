@@ -1,6 +1,9 @@
 package ru.atomofiron.translator;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
@@ -13,6 +16,10 @@ public class I {
 			Log.e("atomofiron", log);
 		else
 			Log.d("atomofiron", log);
+	}
+
+	public static SharedPreferences SP(Context co) {
+		return PreferenceManager.getDefaultSharedPreferences(co);
 	}
 
 	public static int getScreenWidth(Activity ac) {
