@@ -9,23 +9,25 @@
     <ImageButton
         android:layout_width="@dimen/actionbar_height"
         android:layout_height="wrap_content"
-        android:id="@+id/castling_langs"
+        android:id="@+id/swap_langs"
         app:srcCompat="@drawable/ic_arrows"
         android:layout_centerInParent="true"
         style="?borderlessButtonStyle"
         />
-    <TextView
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/left_language"
-        android:layout_toLeftOf="@id/castling_langs"
+        android:id="@+id/first_language"
+        android:layout_toLeftOf="@id/swap_langs"
         android:layout_centerVertical="true"
+        android:background="?android:attr/selectableItemBackground"
         />
-    <TextView
+    <Button
         android:layout_centerVertical="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/right_language"
-        android:layout_toRightOf="@id/castling_langs"
+        android:id="@+id/second_language"
+        android:layout_toRightOf="@id/swap_langs"
+        android:background="?android:attr/selectableItemBackground"
         />
 </RelativeLayout>
