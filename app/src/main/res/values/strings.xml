@@ -5,4 +5,5 @@
     <string name="yandex_label">Переведено сервисом «&lt;a href="http://translate.yandex.ru/"&gt;Яндекс.Переводчик&lt;/a&gt;»</string>
     <string name="cancel">Cancel</string>
     <string name="lang_hasnt_translation">Language hasn\\\'t this translation</string>
+    <string name="error">Error!</string>
 </resources>

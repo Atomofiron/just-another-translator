@@ -22,6 +22,10 @@ public class I {
 			Log.d("atomofiron", log);
 	}
 
+	public static void Loge(String log) {
+		Log.e("atomofiron", log);
+	}
+
 	public static void Toast(Context co, int stringId) {
 		Toast.makeText(co, co.getString(stringId), Toast.LENGTH_LONG).show();
 	}

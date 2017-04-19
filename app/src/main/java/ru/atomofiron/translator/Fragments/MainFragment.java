@@ -28,6 +28,7 @@ import ru.atomofiron.translator.Adapters.InputAdapter;
 import ru.atomofiron.translator.R;
 import ru.atomofiron.translator.Utils.AsyncJob;
 import ru.atomofiron.translator.Utils.Languages;
+import ru.atomofiron.translator.Utils.Retrofit.DetectResponse;
 import ru.atomofiron.translator.Utils.Retrofit.LangsResponse;
 
 public class MainFragment extends Fragment implements InputAdapter.OnSlideListener, TextView.OnEditorActionListener, View.OnClickListener {
@@ -219,7 +220,33 @@ public class MainFragment extends Fragment implements InputAdapter.OnSlideListen
 	}
 
 	private void updateTranslation(String value) {
-		// todo translate
+		App.getApi().detect(I.API_KEY, value).enqueue(new Callback<DetectResponse>() {
+			@Override
+			public void onResponse(Call<DetectResponse> call, Response<DetectResponse> response) {
+				DetectResponse detectResponse = response.body();
+				if (detectResponse.getCode() == 200) {
+					String lang = detectResponse.getLang();
+					if (!currentFirstLangCode.equals(lang)) {
+						if (currentSecondLangCode.equals(lang))
+							swapLangs();
+						else {
+							currentFirstLangCode = lang;
+							currentSecondLangCode = languages.getByCode(currentFirstLangCode).getDirByPosition(0);
+							updateLangButtons();
+						}
+					}
+
+					// todo translate
+				} else {
+					I.Log("DetectResponse code: "+detectResponse.getCode());
+					I.Toast(ac, R.string.error);
+				}
+			}
+			@Override
+			public void onFailure(Call<DetectResponse> call, Throwable t) {
+				I.Log("DetectResponse: " + t);
+			}
+		});
 	}
 
 	private void saveCurrentLangs() {
