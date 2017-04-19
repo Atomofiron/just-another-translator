@@ -5,14 +5,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import ru.atomofiron.translator.I;
 
 public class Languages {
 
-	private final Map<String, Language> languages = new HashMap<>();
+	private final ArrayList<Language> languages = new ArrayList<>();
 
 	public Languages(String jsonString) {
 
@@ -25,14 +23,18 @@ public class Languages {
 			for (int i = 0; i < dirsArray.length(); i++) {
 				String[] codes = dirsArray.getString(i).split("-");
 
-				if (languages.containsKey(codes[0])) {
-					lang = languages.get(codes[0]);
-				} else {
+				lang = getByCode(codes[0]);
+				if (lang == null) {
 					lang = new Language(codes[0], langsObject.getString(codes[0]));
-					languages.put(codes[0], lang);
+					languages.add(lang);
 				}
 				lang.dirs.add(codes[1]);
 			}
+
+			// todo check this and remove
+			for (Language l : languages)
+				if (l.dirs.isEmpty())
+					I.Log("! ! ! WTF: "+l.name+" - NO DIRS");
 		} catch (JSONException e) {
 			I.Log(e.toString());
 		}
@@ -42,23 +44,63 @@ public class Languages {
 		return languages.size();
 	}
 
-	public ArrayList<String> getDirs(String code) {
-		// languages always contains code
-		return languages.get(code).dirs;
+	public String[] getStringArray() {
+		String[] arr = new String[size()];
+		for (int i = 0; i < arr.length; i++)
+			arr[i] = languages.get(i).name;
+
+		return arr;
 	}
 
-	public Map<String, Language> getLanguages() {
-		return languages;
+	public Language get(int i) {
+		return languages.get(i);
+	}
+
+	public Language getByCode(String code) {
+		for (Language lang : languages)
+			if (lang.code.equals(code))
+				return lang;
+
+		return null;
+	}
+
+	public int indexByCode(String code) {
+		for (int i = 0; i < size(); i++)
+			if (code.equals(languages.get(i).code))
+				return i;
+
+		return -1;
 	}
 
 	public class Language {
-		String code;
-		String lang;
+		public String code;
+		public String name;
 		final ArrayList<String> dirs = new ArrayList<>();
 
-		Language(String code, String lang) {
+		Language(String code, String name) {
 			this.code = code;
-			this.lang = lang;
+			this.name = name;
+		}
+
+		public String[] getDirsNames() {
+			String[] arr = new String[dirs.size()];
+
+			for (int i = 0; i < arr.length; i++)
+				arr[i] = getByCode(dirs.get(i)).name;
+
+			return arr;
+		}
+
+		public boolean containsDir(String code) {
+			return dirs.contains(code);
+		}
+
+		public int indexOfDir(String code) {
+			return dirs.indexOf(code);
+		}
+
+		public String getDirByPosition(int i) {
+			return dirs.get(i);
 		}
 
 		@Override
@@ -70,12 +112,13 @@ public class Languages {
 
 			// todo to consider a null fields
 
-			return code.equals(langObj.code) && lang.equals(langObj.lang);
+			// ignoring dirs comparing
+			return code.equals(langObj.code) && name.equals(langObj.name);
 		}
 
 		@Override
 		public String toString() {
-			return code + "_" + lang;
+			return code + "_" + name;
 		}
 	}
 
