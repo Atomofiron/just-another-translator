@@ -2,8 +2,10 @@ package ru.atomofiron.translator.Adapters;
 
 import android.animation.ValueAnimator;
 import android.support.v7.widget.RecyclerView;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -11,12 +13,12 @@ import ru.atomofiron.translator.CustomViews.ExEditText;
 import ru.atomofiron.translator.I;
 import ru.atomofiron.translator.R;
 
-public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> implements ValueAnimator.AnimatorUpdateListener {
+public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> implements ValueAnimator.AnimatorUpdateListener, TextView.OnEditorActionListener {
 
 	private RecyclerView recyclerView;
 	private int screenWidth;
 	private final ArrayList<String> list = new ArrayList<>();
-	private OnSlideListener onSlideListener = null;
+	private OnInputListener onInputListener = null;
 	private int currentPosition = -1;
 
 	public InputAdapter(RecyclerView recyclerView, final int screenWidth) {
@@ -38,11 +40,9 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 					afterDragging = false;
 
 					currentPosition = offset < (screenWidth / 2) ? 0 : 1;
-					ExEditText currentView = (ExEditText)recyclerView.getChildAt(currentPosition);
-					recyclerView.smoothScrollToPosition(recyclerView.getChildAdapterPosition(currentView));
-
-					if (onSlideListener != null)
-						onSlideListener.onSlide(currentView);
+					recyclerView.smoothScrollToPosition(
+							recyclerView.getChildAdapterPosition(
+									recyclerView.getChildAt(currentPosition)));
 				}
 			}
 
@@ -67,6 +67,7 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 	public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 		ExEditText v = (ExEditText) LayoutInflater.from(parent.getContext())
 				.inflate(R.layout.edit_text_input, parent, false);
+		v.setOnEditorActionListener(this);
 
 		return new ViewHolder(v);
 	}
@@ -101,8 +102,18 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 		recyclerView.scrollToPosition(list.size() - 1);
 	}
 
-	public void setOnSlideListener(OnSlideListener onSlideListener) {
-		this.onSlideListener = onSlideListener;
+
+	public void setOnInputListener(OnInputListener onInputListener) {
+		this.onInputListener = onInputListener;
+	}
+
+	@Override
+	public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+		I.Log("actionId: "+actionId);
+		if (onInputListener != null)
+			onInputListener.onInput(v.getText().toString());
+
+		return false;
 	}
 
 	static class ViewHolder extends RecyclerView.ViewHolder {
@@ -114,7 +125,7 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 		}
 	}
 
-	public interface OnSlideListener {
-		void onSlide(ExEditText currentView);
+	public interface OnInputListener {
+		void onInput(String text);
 	}
 }

@@ -31,12 +31,11 @@ import ru.atomofiron.translator.Utils.Languages;
 import ru.atomofiron.translator.Utils.Retrofit.DetectResponse;
 import ru.atomofiron.translator.Utils.Retrofit.LangsResponse;
 
-public class MainFragment extends Fragment implements InputAdapter.OnSlideListener, TextView.OnEditorActionListener, View.OnClickListener {
+public class MainFragment extends Fragment implements InputAdapter.OnInputListener, View.OnClickListener {
 
 	private View mainView = null;
 	private Activity ac;
 	private SharedPreferences sp;
-	private ExEditText currentEditText = null;
 	private RecyclerView recyclerView;
 	private InputAdapter inputAdapter;
 	private Languages languages;
@@ -122,7 +121,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnSlideListen
 		recyclerView.setLayoutManager
 				(new LinearLayoutManager(ac, LinearLayoutManager.HORIZONTAL, false));
 		recyclerView.setAdapter(inputAdapter);
-		inputAdapter.setOnSlideListener(this);
+		inputAdapter.setOnInputListener(this);
 
 		inputAdapter.add("apple");
 		inputAdapter.add("google");
@@ -205,15 +204,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnSlideListen
 		return true;
 	}
 
-	@Override
-	public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-		String value = currentEditText.getText().toString();
-		addToHistory(value);
-		updateTranslation(value);
-
-		return false;
-	}
-
 	private void addToHistory(String value) {
 		// todo add to real history
 		inputAdapter.add(value);
@@ -224,7 +214,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnSlideListen
 			@Override
 			public void onResponse(Call<DetectResponse> call, Response<DetectResponse> response) {
 				DetectResponse detectResponse = response.body();
-				if (detectResponse.getCode() == 200) {
+				if (detectResponse != null && detectResponse.getCode() == 200) {
 					String lang = detectResponse.getLang();
 					if (!currentFirstLangCode.equals(lang)) {
 						if (currentSecondLangCode.equals(lang))
@@ -238,7 +228,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnSlideListen
 
 					// todo translate
 				} else {
-					I.Log("DetectResponse code: "+detectResponse.getCode());
+					I.Log("DetectResponse code: "+response.code());
 					I.Toast(ac, R.string.error);
 				}
 			}
@@ -256,13 +246,13 @@ public class MainFragment extends Fragment implements InputAdapter.OnSlideListen
 		ed.apply();
 	}
 
-	@Override
-	public void onSlide(ExEditText currentView) {
-		currentEditText = currentView;
-		currentEditText.setOnEditorActionListener(this);
-		I.Log("currentEditText: "+currentEditText.getText().toString());
-		currentView.requestFocus();
-		currentView.setSelection(currentView.length());
+	public void onInput(String text) {
+		I.Log("onInput: "+text);
+		if (text.isEmpty())
+			return;
+
+		addToHistory(text);
+		updateTranslation(text);
 	}
 
 
