@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:showIn="@layout/activity_main"
-    tools:context="ru.atomofiron.translator.MainFragment">
+    tools:context="ru.atomofiron.translator.Fragments.MainFragment">
 
     <include layout="@layout/layout_languages" />
     <LinearLayout

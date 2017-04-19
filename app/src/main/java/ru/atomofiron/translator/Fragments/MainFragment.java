@@ -1,4 +1,4 @@
-package ru.atomofiron.translator;
+package ru.atomofiron.translator.Fragments;
 
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -10,10 +10,12 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.HorizontalScrollView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import ru.atomofiron.translator.CustomViews.ExEditText;
+import ru.atomofiron.translator.I;
+import ru.atomofiron.translator.Adapters.InputAdapter;
+import ru.atomofiron.translator.R;
 
 public class MainFragment extends Fragment implements InputAdapter.OnSlideListener, TextView.OnEditorActionListener {
 

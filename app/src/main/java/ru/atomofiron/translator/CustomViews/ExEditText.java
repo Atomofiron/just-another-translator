@@ -1,4 +1,4 @@
-package ru.atomofiron.translator;
+package ru.atomofiron.translator.CustomViews;
 
 import android.content.Context;
 import android.text.Editable;

@@ -1,12 +1,15 @@
-package ru.atomofiron.translator;
+package ru.atomofiron.translator.Adapters;
 
 import android.animation.ValueAnimator;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
+
+import ru.atomofiron.translator.CustomViews.ExEditText;
+import ru.atomofiron.translator.I;
+import ru.atomofiron.translator.R;
 
 public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> implements ValueAnimator.AnimatorUpdateListener {
 
