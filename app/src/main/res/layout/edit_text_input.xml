@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<EditText
+<ru.atomofiron.translator.ExEditText
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@null"
-    android:gravity="top|right"
+    android:gravity="top|left"
     android:padding="16dp"
     android:hint="@string/input_hint"
+    android:imeOptions="actionDone"
+    android:inputType="textFilter|textNoSuggestions"
+    android:minLines="5"
+    android:lines="5"
+    android:maxLines="5"
     />

@@ -2,20 +2,28 @@ package ru.atomofiron.translator;
 
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
-public class MainFragment extends Fragment {
+public class MainFragment extends Fragment implements InputAdapter.OnSlideListener, TextView.OnEditorActionListener {
+
+	private ExEditText currentEditText = null;
+	private RecyclerView recyclerView;
+	private InputAdapter inputAdapter;
 
     public MainFragment() {}
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
+            Bundle savedInstanceState) { // вот щас вообще не до гранулированности коммитов
 
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
@@ -25,23 +33,43 @@ public class MainFragment extends Fragment {
     }
 
     private void initInput(View view) {
+		recyclerView = (RecyclerView) view.findViewById(R.id.input_recycler_view);
+		inputAdapter = new InputAdapter(recyclerView, I.getScreenWidth(getActivity()));
 
-		int width = I.getScreenWidth(getActivity());
+		recyclerView.setLayoutManager
+				(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
+		recyclerView.setAdapter(inputAdapter);
+		inputAdapter.setOnSlideListener(this);
 
-		HorizontalScrollView hsv = (HorizontalScrollView)view.findViewById(R.id.input_scroll);
-		((ExHorizontalScrollView)hsv).setScreenWidth(width);
+		inputAdapter.add("apple");
+		inputAdapter.add("google");
+		inputAdapter.add("one plus");
+		inputAdapter.add("yandex");
+	}
+	@Override
+	public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+		String value = currentEditText.getText().toString();
+		addToHistory(value);
+		updateTranslation(value);
 
-		LinearLayout ll = ((LinearLayout)hsv.findViewById(R.id.input_layout));
+		return false;
+	}
 
-		LayoutInflater inflater = LayoutInflater.from(getActivity());
-		for (int i = 0; i < 5; i++) {
-			EditText et = (EditText)inflater.inflate(R.layout.edit_text_input, null, false);
+	private void addToHistory(String value) {
+		// todo add to real history
+		inputAdapter.add(value);
+	}
 
-			et.setText("TEXT "+i);
-			et.setLayoutParams(new LinearLayout.LayoutParams(width, ViewGroup.LayoutParams.MATCH_PARENT));
+	private void updateTranslation(String value) {
+	}
 
-			ll.addView(et);
-		}
+	@Override
+	public void onSlide(ExEditText currentView) {
+		currentEditText = currentView;
+		currentEditText.setOnEditorActionListener(this);
+		I.Log("currentEditText: "+currentEditText.getText().toString());
+		currentView.requestFocus();
+		currentView.setSelection(currentView.length());
 	}
 
 }

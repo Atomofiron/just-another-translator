@@ -8,18 +8,15 @@
     tools:showIn="@layout/activity_main"
     tools:context="ru.atomofiron.translator.MainFragment">
 
-    <ru.atomofiron.translator.ExHorizontalScrollView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:id="@+id/input_scroll"
-        android:scrollbarSize="0dp">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:id="@+id/input_layout"
-            />
-    </ru.atomofiron.translator.ExHorizontalScrollView>
+        android:layout_height="wrap_content">
+        <!-- в избранное, голосом, озвучить -->
+    </LinearLayout>
+    <android.support.v7.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/input_recycler_view"
+        />
 
 </LinearLayout>
