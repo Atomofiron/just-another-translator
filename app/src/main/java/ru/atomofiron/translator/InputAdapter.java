@@ -14,6 +14,7 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 	private int screenWidth;
 	private final ArrayList<String> list = new ArrayList<>();
 	private OnSlideListener onSlideListener = null;
+	private int currentPosition = -1;
 
 	public InputAdapter(RecyclerView recyclerView, final int screenWidth) {
 		this.recyclerView = recyclerView;
@@ -33,11 +34,12 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 				if (afterDragging && newState == RecyclerView.SCROLL_STATE_IDLE) {
 					afterDragging = false;
 
-					ExEditText current = (ExEditText)recyclerView.getChildAt(offset < (screenWidth / 2) ? 0 : 1);
-					recyclerView.smoothScrollToPosition(recyclerView.getChildAdapterPosition(current));
+					currentPosition = offset < (screenWidth / 2) ? 0 : 1;
+					ExEditText currentView = (ExEditText)recyclerView.getChildAt(currentPosition);
+					recyclerView.smoothScrollToPosition(recyclerView.getChildAdapterPosition(currentView));
 
 					if (onSlideListener != null)
-						onSlideListener.onSlide(current);
+						onSlideListener.onSlide(currentView);
 				}
 			}
 
@@ -50,8 +52,6 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 					offset += screenWidth;
 			}
 		});
-
-		list.add("");
 	}
 
 
@@ -70,13 +70,13 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 
 	@Override
 	public void onBindViewHolder(ViewHolder holder, int position) {
-		holder.editText.setText(list.get(position));
+		holder.editText.setText(position >= list.size() ? "" : list.get(position));
 		holder.editText.setWidth(screenWidth);
 	}
 
 	@Override
 	public int getItemCount() {
-		return list.size();
+		return list.size() + 1;
 	}
 
 	public void updateList(ArrayList<String> list) {
@@ -84,16 +84,18 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 		this.list.addAll(list);
 
 		notifyDataSetChanged();
+		recyclerView.scrollToPosition(list.size() - 1);
 	}
 
 	public void add(String string) {
-		if (recyclerView.isComputingLayout() || list.contains(string))
+		if (recyclerView.isComputingLayout())
 			return;
 
-		list.add(list.size() - 1, string);
+		list.remove(string);
+		list.add(string);
 
 		notifyDataSetChanged();
-		recyclerView.scrollToPosition(list.size() - 2);
+		recyclerView.scrollToPosition(list.size() - 1);
 	}
 
 	public void setOnSlideListener(OnSlideListener onSlideListener) {

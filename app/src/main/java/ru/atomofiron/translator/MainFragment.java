@@ -61,6 +61,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnSlideListen
 	}
 
 	private void updateTranslation(String value) {
+		// todo translate
 	}
 
 	@Override

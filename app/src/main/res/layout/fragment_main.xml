@@ -8,15 +8,24 @@
     tools:showIn="@layout/activity_main"
     tools:context="ru.atomofiron.translator.MainFragment">
 
+    <include layout="@layout/layout_languages" />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <!-- в избранное, голосом, озвучить -->
+
+        <android.support.v7.widget.RecyclerView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/input_recycler_view"
+            android:layout_weight="1"
+            />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:orientation="vertical"> <!-- лайфхак с весом -->
+            <!-- в избранное, голосом, озвучить -->
+        </LinearLayout>
     </LinearLayout>
-    <android.support.v7.widget.RecyclerView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/input_recycler_view"
-        />
 
 </LinearLayout>
