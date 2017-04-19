@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.widget.Toast;
 
 public class I {
 
@@ -16,6 +17,10 @@ public class I {
 			Log.e("atomofiron", log);
 		else
 			Log.d("atomofiron", log);
+	}
+
+	public static void Toast(Context co, int stringId) {
+		Toast.makeText(co, co.getString(stringId), Toast.LENGTH_LONG).show();
 	}
 
 	public static SharedPreferences SP(Context co) {
