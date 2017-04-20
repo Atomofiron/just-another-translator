@@ -66,13 +66,13 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		ac = getActivity();
 		sp = I.SP(ac);
 
-		/*new LanguagesLoader("ru", new LanguagesLoader.OnLoadedListener() {
+		/*new LanguagesLoader(I.getUICode(ac), new LanguagesLoader.OnLoadedListener() {
 			public void onLoaded(Languages languages) {
 				initTranslator(languages);
 			}
 		}).execute();*/
 
-		App.getApi().getLangs(I.API_KEY, "ru").enqueue(new Callback<LangsResponse>() {
+		App.getApi().getLangs(I.API_KEY, I.getUICode(ac)).enqueue(new Callback<LangsResponse>() {
 			@Override
 			public void onResponse(Call<LangsResponse> call, final Response<LangsResponse> response) {
 				new AsyncJob(new AsyncJob.Job() { // для асинхронного парсинга и получения объекта Languages
@@ -98,8 +98,9 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		currentSecondLangCode = sp.getString(I.PREF_SECOND_LANG_CODE, "");
 
 		if (currentFirstLangCode.isEmpty() || currentSecondLangCode.isEmpty()) {
-			currentFirstLangCode = "en";
-			currentSecondLangCode = "ru";
+			String code = I.getUICode(ac);
+			currentFirstLangCode = languages.contains(code) ? code : "en";
+			currentSecondLangCode = currentFirstLangCode.equals("en") ? "ru" : "en";
 			saveCurrentLangs();
 		}
 	}
@@ -262,7 +263,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		progressView.show();
 
 		String langs = currentFirstLangCode + "-" + currentSecondLangCode;
-		App.getApi().translate2(I.DIC_URL, I.API_KEY_DIC, langs, value, "ru").enqueue(new Callback<Main>() {
+		App.getApi().translate2(I.DIC_URL, I.API_KEY_DIC, langs, value, I.getUICode(ac)).enqueue(new Callback<Main>() {
 			@Override
 			public void onResponse(Call<Main> call, Response<Main> response) {
 				if (response.isSuccessful())

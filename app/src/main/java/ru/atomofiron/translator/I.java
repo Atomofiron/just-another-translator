@@ -47,6 +47,10 @@ public class I {
 		return metrics.widthPixels;
 	}
 
+	public static String getUICode(Context co) {
+		return co.getResources().getConfiguration().locale.getLanguage();
+	}
+
 	public static void initColors(Activity ac) {
 		CODE_COLOR_POS = ac.getResources().getColor(R.color.colorResultPos);
 		CODE_COLOR_TEXT = ac.getResources().getColor(R.color.colorResultText);

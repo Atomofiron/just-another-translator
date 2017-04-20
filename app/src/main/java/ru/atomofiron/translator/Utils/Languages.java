@@ -82,6 +82,10 @@ public class Languages {
 		return -1;
 	}
 
+	public boolean contains(String code) {
+		return indexByCode(code) != -1;
+	}
+
 	private void checkIfNull() {
 		// todo check this and remove
 		for (Language l : languages)
