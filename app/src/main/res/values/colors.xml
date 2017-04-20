@@ -9,9 +9,9 @@
     <color name="colorDark">#ff111111</color>
     <color name="colorLight">#ffeeeeee</color>
     <color name="colorMiddle">#ff777777</color>
-    <color name="colorCrystalLiteBlue">#557777ff</color>
-    <color name="colorLiteBlue">#ff7777ff</color>
-    <color name="colorDarkLiteBlue">#ff5555cc</color>
+    <color name="colorCrystalLiteBlue">#5577aaff</color>
+    <color name="colorLiteBlue">#ff77aaff</color>
+    <color name="colorDarkLiteBlue">#ff5588cc</color>
 
     <color name="colorResultBlack">#ff000000</color>
     <color name="colorResultPos">#ffa08090</color>
