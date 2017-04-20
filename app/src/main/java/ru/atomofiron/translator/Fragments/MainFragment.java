@@ -14,8 +14,6 @@ import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -23,6 +21,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import ru.atomofiron.translator.App;
+import ru.atomofiron.translator.CustomViews.ProgressView;
 import ru.atomofiron.translator.I;
 import ru.atomofiron.translator.Adapters.InputAdapter;
 import ru.atomofiron.translator.R;
@@ -42,6 +41,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private Button firstLangButton;
 	private Button secondLangButton;
 	private TextView resultView;
+	private ProgressView progressView;
 
 	private InputAdapter inputAdapter;
 	private Languages languages;
@@ -81,6 +81,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			@Override
 			public void onFailure(Call<LangsResponse> call, Throwable t) {
 				I.Loge("LangsResponse: " + t);
+				progressView.hide();
 			}
 		});
 
@@ -103,18 +104,10 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 		mainView = inflater.inflate(R.layout.fragment_main, container, false);
 
-		initInput(mainView);
-
-		firstLangButton = (Button) mainView.findViewById(R.id.first_language);
-		secondLangButton = (Button) mainView.findViewById(R.id.second_language);
-		mainView.findViewById(R.id.swap_langs).setOnClickListener(this);
-		firstLangButton.setOnClickListener(this);
-		secondLangButton.setOnClickListener(this);
-
         return mainView;
     }
 
-    private void initInput(View view) {
+    private void init(View view) {
 		TextView yandexLabel = (TextView) view.findViewById(R.id.yandex_label);
 		yandexLabel.setText(Html.fromHtml(getString(R.string.yandex_label)));
 		yandexLabel.setMovementMethod(LinkMovementMethod.getInstance());
@@ -133,12 +126,22 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		inputAdapter.add("google");
 		inputAdapter.add("one plus");
 		inputAdapter.add("yandex");
+
+		firstLangButton = (Button) mainView.findViewById(R.id.first_language);
+		secondLangButton = (Button) mainView.findViewById(R.id.second_language);
+		mainView.findViewById(R.id.swap_langs).setOnClickListener(this);
+		firstLangButton.setOnClickListener(this);
+		secondLangButton.setOnClickListener(this);
+
+		progressView = (ProgressView) view.findViewById(R.id.progress_view);
 	}
 
 	private void initTranslator(Languages languages) {
 		this.languages = languages;
 
+		init(mainView);
 		updateLangButtons();
+		progressView.hide();
 	}
 
 	@Override
@@ -158,6 +161,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	private void updateLangButtons() {
+		I.Log("wtf: "+currentFirstLangCode+" "+currentSecondLangCode);
 		new SimpleAlphaAnimation(firstLangButton, secondLangButton).start(new SimpleAlphaAnimation.OnActionListener() {
 			public void onAnimHalfway(View... views) {
 				firstLangButton.setText(languages.getByCode(currentFirstLangCode).name);
@@ -220,6 +224,8 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	private void updateLangsAndTranslate(final String value) {
+		progressView.show();
+
 		App.getApi().detect(I.API_KEY, value).enqueue(new Callback<DetectResponse>() {
 			@Override
 			public void onResponse(Call<DetectResponse> call, Response<DetectResponse> response) {
@@ -233,15 +239,20 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 					I.Loge("DetectResponse code: "+response.code());
 					I.Toast(ac, R.string.error);
 				}
+
+				progressView.hide();
 			}
 			@Override
 			public void onFailure(Call<DetectResponse> call, Throwable t) {
 				I.Loge("DetectResponse: " + t);
+				progressView.hide();
 			}
 		});
 	}
 
 	private void translate(String value) {
+		progressView.show();
+
 		App.getApi().translate(I.API_KEY, value, currentSecondLangCode, "plain").enqueue(new Callback<TranslateResponse>() {
 			@Override
 			public void onResponse(Call<TranslateResponse> call, Response<TranslateResponse> response) {
@@ -268,10 +279,13 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 					I.Loge("TranslateResponse code: "+response.code());
 					I.Toast(ac, R.string.error);
 				}
+
+				progressView.hide();
 			}
 			@Override
 			public void onFailure(Call<TranslateResponse> call, Throwable t) {
 				I.Loge("TranslateResponse: " + t);
+				progressView.hide();
 			}
 		});
 	}
