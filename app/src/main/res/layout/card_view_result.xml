@@ -5,6 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     app:contentPadding="@dimen/middle_space"
+    app:contentPaddingTop="0dp"
     app:contentPaddingBottom="@dimen/big_space"
+    app:cardCornerRadius="@dimen/small_space"
+    app:cardElevation="@dimen/mini_space"
     android:layout_margin="@dimen/middle_space"
     />

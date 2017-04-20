@@ -2,6 +2,7 @@
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="actionbar_height">56dp</dimen>
     <dimen name="actionbar_mega_height">64dp</dimen>
+    <dimen name="mini_space">2dp</dimen>
     <dimen name="small_space">4dp</dimen>
     <dimen name="middle_space">8dp</dimen>
     <dimen name="big_space">16dp</dimen>

@@ -5,4 +5,5 @@
     android:layout_height="match_parent"
     android:textSize="@dimen/small_text_size"
     android:textColor="@color/colorResultPos"
+    android:layout_marginTop="@dimen/middle_space"
     />
