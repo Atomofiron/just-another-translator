@@ -217,20 +217,8 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			public void onResponse(Call<DetectResponse> call, Response<DetectResponse> response) {
 				DetectResponse detectResponse = response.body();
 				if (detectResponse != null && detectResponse.getCode() == 200) {
-					String detectedLang = detectResponse.getLang();
-					if (!currentFirstLangCode.equals(detectedLang)) {
-						if (currentSecondLangCode.equals(detectedLang))
-							swapLangs();
-						else {
-							currentFirstLangCode = detectedLang;
-
-							Languages.Language lang = languages.getByCode(currentFirstLangCode);
-							if (!lang.containsDir(currentSecondLangCode))
-								currentSecondLangCode = lang.getDirByPosition(0);
-
-							updateLangButtons();
-						}
-					}
+					if (currentSecondLangCode.equals(detectResponse.getLang()))
+						swapLangs();
 
 					translate(value);
 				} else {
@@ -246,8 +234,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	private void translate(String value) {
-		String langs = currentFirstLangCode + "-" + currentSecondLangCode;
-		App.getApi().translate(I.API_KEY, value, langs, "plain").enqueue(new Callback<TranslateResponse>() {
+		App.getApi().translate(I.API_KEY, value, currentSecondLangCode, "plain").enqueue(new Callback<TranslateResponse>() {
 			@Override
 			public void onResponse(Call<TranslateResponse> call, Response<TranslateResponse> response) {
 				TranslateResponse translateResponse = response.body();
