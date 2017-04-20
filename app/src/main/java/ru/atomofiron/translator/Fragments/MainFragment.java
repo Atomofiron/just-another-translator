@@ -31,6 +31,7 @@ import ru.atomofiron.translator.Utils.Languages;
 import ru.atomofiron.translator.Utils.Retrofit.DetectResponse;
 import ru.atomofiron.translator.Utils.Retrofit.LangsResponse;
 import ru.atomofiron.translator.Utils.Retrofit.TranslateResponse;
+import ru.atomofiron.translator.Utils.SimpleAlphaAnimation;
 
 public class MainFragment extends Fragment implements InputAdapter.OnInputListener, View.OnClickListener {
 
@@ -157,8 +158,12 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	private void updateLangButtons() {
-		firstLangButton.setText(languages.getByCode(currentFirstLangCode).name);
-		secondLangButton.setText(languages.getByCode(currentSecondLangCode).name);
+		new SimpleAlphaAnimation(firstLangButton, secondLangButton).start(new SimpleAlphaAnimation.OnActionListener() {
+			public void onAnimHalfway(View... views) {
+				firstLangButton.setText(languages.getByCode(currentFirstLangCode).name);
+				secondLangButton.setText(languages.getByCode(currentSecondLangCode).name);
+			}
+		});
 	}
 
 	private void showSelectingFirstLang() {
@@ -272,22 +277,11 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	private void showText(final String fullText) {
-		Animation anim = new AlphaAnimation(1, 0);
-		anim.setDuration(200);
-		anim.setAnimationListener(new Animation.AnimationListener() {
-			public void onAnimationStart(Animation animation) {}
-			public void onAnimationRepeat(Animation animation) {}
-			public void onAnimationEnd(Animation animation) {
-				resultView.setText(fullText);
-
-				Animation anim = new AlphaAnimation(0, 1);
-				anim.setDuration(200);
-				resultView.startAnimation(anim);
+		new SimpleAlphaAnimation(resultView).start(new SimpleAlphaAnimation.OnActionListener() {
+			public void onAnimHalfway(View... views) {
+				((TextView)views[0]).setText(fullText);
 			}
-
 		});
-
-		resultView.startAnimation(anim);
 	}
 
 	private void saveCurrentLangs() {
