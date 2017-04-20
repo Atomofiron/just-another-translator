@@ -27,23 +27,23 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 
 		recyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
 			private int offset = 0;
-			private boolean afterDragging = false;
+			private int lastState = -1;
+			private boolean needSlide = false;
 
 			@Override
 			public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
 				super.onScrollStateChanged(recyclerView, newState);
 				I.Log("onScrollStateChanged() "+newState);
 
-				afterDragging |= newState == RecyclerView.SCROLL_STATE_DRAGGING;
+				if (lastState == RecyclerView.SCROLL_STATE_DRAGGING &&
+						newState == RecyclerView.SCROLL_STATE_SETTLING)
+					needSlide = true;
 
-				if (afterDragging && newState == RecyclerView.SCROLL_STATE_IDLE) {
-					afterDragging = false;
+				if (lastState == RecyclerView.SCROLL_STATE_DRAGGING &&
+						newState == RecyclerView.SCROLL_STATE_IDLE)
+					slide(recyclerView);
 
-					currentPosition = offset < (screenWidth / 2) ? 0 : 1;
-					recyclerView.smoothScrollToPosition(
-							recyclerView.getChildAdapterPosition(
-									recyclerView.getChildAt(currentPosition)));
-				}
+				lastState = newState;
 			}
 
 			@Override
@@ -53,6 +53,18 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 				offset = offset % screenWidth;
 				while (offset < 0)
 					offset += screenWidth;
+
+				if (needSlide && lastState != RecyclerView.SCROLL_STATE_DRAGGING && Math.abs(dx) < 10)
+					slide(recyclerView);
+			}
+
+			private void slide(RecyclerView recyclerView) {
+				needSlide = false;
+
+				currentPosition = offset < (screenWidth / 2) ? 0 : 1;
+				recyclerView.smoothScrollToPosition(
+						recyclerView.getChildAdapterPosition(
+								recyclerView.getChildAt(currentPosition)));
 			}
 		});
 	}
