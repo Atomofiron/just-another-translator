@@ -70,7 +70,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 					Languages languages;
 					public void onAsyncJobStart() {
 						LangsResponse langsResponse = response.body();
-						languages = new Languages(langsResponse.getDirs(), langsResponse.getLangs());
+						languages = new Languages(langsResponse.getLangs());
 					}
 					public void onJobEnd() {
 						initTranslator(this.languages);

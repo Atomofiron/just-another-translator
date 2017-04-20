@@ -42,7 +42,7 @@ public class Languages {
 		}
 	}
 
-	public Languages(List<String> dirs, JsonObject langsObj) {
+	public Languages(JsonObject langsObj) {
 		ArrayList<String> codes = new ArrayList<>();
 		for (Map.Entry<String, JsonElement> e : langsObj.entrySet()) {
 			languages.add(new Language(e.getKey(), e.getValue().getAsString(), codes));
