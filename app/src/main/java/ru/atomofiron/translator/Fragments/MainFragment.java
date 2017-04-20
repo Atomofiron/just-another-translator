@@ -14,6 +14,8 @@ import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -252,9 +254,11 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 						}
 					}
 
-					resultView.setText("");
+					StringBuilder textBuilder = new StringBuilder("");
 					for (String text : translateResponse.getText())
-						resultView.append(Html.fromHtml(text) + "\n");
+						textBuilder.append(Html.fromHtml(text)).append("\n");
+
+					showText(textBuilder.toString());
 				} else {
 					I.Loge("TranslateResponse code: "+response.code());
 					I.Toast(ac, R.string.error);
@@ -265,6 +269,25 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 				I.Loge("TranslateResponse: " + t);
 			}
 		});
+	}
+
+	private void showText(final String fullText) {
+		Animation anim = new AlphaAnimation(1, 0);
+		anim.setDuration(200);
+		anim.setAnimationListener(new Animation.AnimationListener() {
+			public void onAnimationStart(Animation animation) {}
+			public void onAnimationRepeat(Animation animation) {}
+			public void onAnimationEnd(Animation animation) {
+				resultView.setText(fullText);
+
+				Animation anim = new AlphaAnimation(0, 1);
+				anim.setDuration(200);
+				resultView.startAnimation(anim);
+			}
+
+		});
+
+		resultView.startAnimation(anim);
 	}
 
 	private void saveCurrentLangs() {
