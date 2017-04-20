@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">@color/colorLiteGreen</color>
-    <color name="colorPrimaryDark">@color/colorDarkLiteGreen</color>
+    <color name="colorPrimary">@color/colorLiteBlue</color>
+    <color name="colorPrimaryDark">@color/colorDarkLiteBlue</color>
     <color name="colorAccent">@color/colorBlack</color>
 
     <color name="colorWhite">#ffffffff</color>
@@ -9,13 +9,13 @@
     <color name="colorDark">#ff111111</color>
     <color name="colorLight">#ffeeeeee</color>
     <color name="colorMiddle">#ff777777</color>
-    <color name="colorCrystalLiteGreen">#5577ff77</color>
-    <color name="colorLiteGreen">#ff77ff77</color>
-    <color name="colorDarkLiteGreen">#ff55cc55</color>
+    <color name="colorCrystalLiteBlue">#557777ff</color>
+    <color name="colorLiteBlue">#ff7777ff</color>
+    <color name="colorDarkLiteBlue">#ff5555cc</color>
 
     <color name="colorResultBlack">#ff000000</color>
     <color name="colorResultPos">#ffa08090</color>
     <color name="colorResultSyn">#ff507090</color>
-    <color name="colorResultMean">#ff906050</color>
+    <color name="colorResultMean">#ff905060</color>
     <color name="colorResultText">#ff8090b0</color>
 </resources>
