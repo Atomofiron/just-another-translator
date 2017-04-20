@@ -1,5 +1,6 @@
 package ru.atomofiron.translator.Utils;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import org.json.JSONArray;
@@ -8,6 +9,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import ru.atomofiron.translator.I;
 
@@ -41,19 +43,11 @@ public class Languages {
 	}
 
 	public Languages(List<String> dirs, JsonObject langsObj) {
-		Language lang;
-		for (int i = 0; i < dirs.size(); i++) {
-			String[] codes = dirs.get(i).split("-");
-
-			lang = getByCode(codes[0]);
-			if (lang == null) {
-				lang = new Language(codes[0], langsObj.get(codes[0]).getAsString());
-				languages.add(lang);
-			}
-			lang.dirs.add(codes[1]);
+		ArrayList<String> codes = new ArrayList<>();
+		for (Map.Entry<String, JsonElement> e : langsObj.entrySet()) {
+			languages.add(new Language(e.getKey(), e.getValue().getAsString(), codes));
+			codes.add(e.getKey());
 		}
-
-		checkIfNull();
 	}
 
 	public int size() {
@@ -98,11 +92,16 @@ public class Languages {
 	public class Language {
 		public String code;
 		public String name;
-		final ArrayList<String> dirs = new ArrayList<>();
+		private ArrayList<String> dirs = new ArrayList<>();
 
 		Language(String code, String name) {
 			this.code = code;
 			this.name = name;
+		}
+		Language(String code, String name, ArrayList<String> dirs) {
+			this.code = code;
+			this.name = name;
+			this.dirs = dirs;
 		}
 
 		public String[] getDirsNames() {
