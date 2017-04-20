@@ -215,13 +215,17 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			public void onResponse(Call<DetectResponse> call, Response<DetectResponse> response) {
 				DetectResponse detectResponse = response.body();
 				if (detectResponse != null && detectResponse.getCode() == 200) {
-					String lang = detectResponse.getLang();
-					if (!currentFirstLangCode.equals(lang)) {
-						if (currentSecondLangCode.equals(lang))
+					String detectedLang = detectResponse.getLang();
+					if (!currentFirstLangCode.equals(detectedLang)) {
+						if (currentSecondLangCode.equals(detectedLang))
 							swapLangs();
 						else {
-							currentFirstLangCode = lang;
-							currentSecondLangCode = languages.getByCode(currentFirstLangCode).getDirByPosition(0);
+							currentFirstLangCode = detectedLang;
+
+							Languages.Language lang = languages.getByCode(currentFirstLangCode);
+							if (!lang.containsDir(currentSecondLangCode))
+								currentSecondLangCode = lang.getDirByPosition(0);
+
 							updateLangButtons();
 						}
 					}
