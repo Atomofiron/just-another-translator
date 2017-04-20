@@ -4,8 +4,10 @@ import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
@@ -17,11 +19,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.TextView;
+
+import java.util.ArrayList;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import ru.atomofiron.translator.Adapters.ViewPagerAdapter;
 import ru.atomofiron.translator.App;
 import ru.atomofiron.translator.CustomViews.ProgressView;
 import ru.atomofiron.translator.I;
@@ -51,6 +58,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private Button secondLangButton;
 	private ProgressView progressView;
 	private LinearLayout resultContainer;
+	private TextView yandexView;
 
 	private InputAdapter inputAdapter;
 	private Languages languages;
@@ -118,9 +126,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
     }
 
     private void init(View view) {
-		TextView yandexLabel = (TextView) view.findViewById(R.id.yandex_label);
-		yandexLabel.setText(Html.fromHtml(getString(R.string.yandex_label)));
-		yandexLabel.setMovementMethod(LinkMovementMethod.getInstance());
+		LayoutInflater inflater = LayoutInflater.from(ac);
 
 		recyclerView = (RecyclerView) view.findViewById(R.id.input_recycler_view);
 		inputAdapter = new InputAdapter(recyclerView, I.getScreenWidth(ac));
@@ -129,8 +135,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 				(new LinearLayoutManager(ac, LinearLayoutManager.HORIZONTAL, false));
 		recyclerView.setAdapter(inputAdapter);
 		inputAdapter.setOnInputListener(this);
-
-		resultContainer = (LinearLayout) view.findViewById(R.id.result_container);
 
 		inputAdapter.add("apple");
 		inputAdapter.add("google");
@@ -144,6 +148,25 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		secondLangButton.setOnClickListener(this);
 
 		progressView = (ProgressView) view.findViewById(R.id.progress_view);
+
+		ArrayList<View> viewList = new ArrayList<>();
+		ListView historyListView = new ListView(ac);
+		ScrollView scrollView = (ScrollView) inflater.inflate(R.layout.layout_scroll_result, null, false);
+		ListView favoriteListView = new ListView(ac);
+		viewList.add(historyListView);
+		viewList.add(scrollView);
+		viewList.add(favoriteListView);
+
+		ViewPagerAdapter pagerAdapter = new ViewPagerAdapter(ac, viewList);
+		ViewPager viewPager = (ViewPager) view.findViewById(R.id.view_pager);
+		viewPager.setAdapter(pagerAdapter);
+		viewPager.setCurrentItem(1);
+		((TabLayout) view.findViewById(R.id.tab_layout)).setupWithViewPager(viewPager);
+
+		resultContainer = (LinearLayout) scrollView.findViewById(R.id.result_container);
+		yandexView = (TextView) inflater.inflate(R.layout.text_view_yandex, null, false);
+		yandexView.setText(Html.fromHtml(getString(R.string.yandex_label)));
+		yandexView.setMovementMethod(LinkMovementMethod.getInstance());
 	}
 
 	private void initTranslator(Languages languages) {
@@ -411,6 +434,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 					cardView.addView(layout);
 					resultContainer.addView(cardView);
 				}
+				resultContainer.addView(yandexView);
 			}
 		});
 	}

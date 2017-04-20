@@ -6,4 +6,7 @@
     <string name="cancel">Отмена</string>
     <string name="lang_hasnt_translation">Язык не имеет перевода</string>
     <string name="error">Ошибка!</string>
+    <string name="translate">Tranlsate</string>
+    <string name="history">History</string>
+    <string name="favorite">Favorite</string>
 </resources>

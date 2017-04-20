@@ -6,4 +6,7 @@
     <string name="cancel">Cancel</string>
     <string name="lang_hasnt_translation">Language hasn\'t this translation</string>
     <string name="error">Error!</string>
+    <string name="translate">Tranlsate</string>
+    <string name="history">History</string>
+    <string name="favorite">Favorite</string>
 </resources>
