@@ -11,7 +11,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +21,6 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import ru.atomofiron.translator.App;
-import ru.atomofiron.translator.CustomViews.ExEditText;
 import ru.atomofiron.translator.I;
 import ru.atomofiron.translator.Adapters.InputAdapter;
 import ru.atomofiron.translator.R;
@@ -30,6 +28,7 @@ import ru.atomofiron.translator.Utils.AsyncJob;
 import ru.atomofiron.translator.Utils.Languages;
 import ru.atomofiron.translator.Utils.Retrofit.DetectResponse;
 import ru.atomofiron.translator.Utils.Retrofit.LangsResponse;
+import ru.atomofiron.translator.Utils.Retrofit.TranslateResponse;
 
 public class MainFragment extends Fragment implements InputAdapter.OnInputListener, View.OnClickListener {
 
@@ -43,6 +42,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private String currentSecondLangCode;
 	private Button firstLangButton;
 	private Button secondLangButton;
+	private TextView resultView;
 
     public MainFragment() {}
 
@@ -122,6 +122,8 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 				(new LinearLayoutManager(ac, LinearLayoutManager.HORIZONTAL, false));
 		recyclerView.setAdapter(inputAdapter);
 		inputAdapter.setOnInputListener(this);
+
+		resultView = (TextView) view.findViewById(R.id.result_view);
 
 		inputAdapter.add("apple");
 		inputAdapter.add("google");
@@ -209,7 +211,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		inputAdapter.add(value);
 	}
 
-	private void updateTranslation(String value) {
+	private void updateLangsAndTranslate(final String value) {
 		App.getApi().detect(I.API_KEY, value).enqueue(new Callback<DetectResponse>() {
 			@Override
 			public void onResponse(Call<DetectResponse> call, Response<DetectResponse> response) {
@@ -230,7 +232,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 						}
 					}
 
-					// todo translate
+					translate(value);
 				} else {
 					I.Log("DetectResponse code: "+response.code());
 					I.Toast(ac, R.string.error);
@@ -239,6 +241,40 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			@Override
 			public void onFailure(Call<DetectResponse> call, Throwable t) {
 				I.Log("DetectResponse: " + t);
+			}
+		});
+	}
+
+	private void translate(String value) {
+		String langs = currentFirstLangCode + "-" + currentSecondLangCode;
+		App.getApi().translate(I.API_KEY, value, langs, "plain").enqueue(new Callback<TranslateResponse>() {
+			@Override
+			public void onResponse(Call<TranslateResponse> call, Response<TranslateResponse> response) {
+				TranslateResponse translateResponse = response.body();
+				if (translateResponse != null && translateResponse.getCode() == 200) {
+					String[] langs = translateResponse.getLang().split("-");
+					if (!currentFirstLangCode.equals(langs[0])) {
+						if (currentFirstLangCode.equals(langs[1]) && currentSecondLangCode.equals(langs[0]))
+							swapLangs();
+						else {
+							currentFirstLangCode = langs[0];
+							currentSecondLangCode = langs[1];
+
+							updateLangButtons();
+						}
+					}
+
+					resultView.setText("");
+					for (String text : translateResponse.getText())
+						resultView.append(Html.fromHtml(text) + "\n");
+				} else {
+					I.Log("TranslateResponse code: "+response.code());
+					I.Toast(ac, R.string.error);
+				}
+			}
+			@Override
+			public void onFailure(Call<TranslateResponse> call, Throwable t) {
+				I.Log("TranslateResponse: " + t);
 			}
 		});
 	}
@@ -256,7 +292,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			return;
 
 		addToHistory(text);
-		updateTranslation(text);
+		updateLangsAndTranslate(text);
 	}
 
 

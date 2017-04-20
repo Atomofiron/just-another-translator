@@ -11,4 +11,8 @@ public interface Api {
 
     @GET("/api/v1.5/tr.json/detect")
     Call<DetectResponse> detect(@Query("key") String key, @Query("text") String text);
+
+    @GET("api/v1.5/tr.json/translate")
+    Call<TranslateResponse> translate(@Query("key") String key, @Query("text") String text,
+								   @Query("lang") String lang, @Query("format") String format);
 }
