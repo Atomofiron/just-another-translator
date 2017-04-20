@@ -333,8 +333,9 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 				LayoutInflater inflater = LayoutInflater.from(ac);
 
+
 				String str;
-				if ((str = main.getDef().get(0).getText()) != null) {
+				if ((str = main.getDef().get(0).getTr().get(0).getText()) != null) {
 					TextView textView = (TextView) inflater.inflate(R.layout.text_view_result_main, resultContainer, false);
 					textView.setText(str);
 					resultContainer.addView(textView);
