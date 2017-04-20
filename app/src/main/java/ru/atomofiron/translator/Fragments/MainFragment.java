@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
@@ -15,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import retrofit2.Call;
@@ -28,6 +30,13 @@ import ru.atomofiron.translator.R;
 import ru.atomofiron.translator.Utils.AsyncJob;
 import ru.atomofiron.translator.Utils.Languages;
 import ru.atomofiron.translator.Utils.Retrofit.DetectResponse;
+import ru.atomofiron.translator.Utils.Retrofit.Dictionary.Def;
+import ru.atomofiron.translator.Utils.Retrofit.Dictionary.Ex;
+import ru.atomofiron.translator.Utils.Retrofit.Dictionary.Main;
+import ru.atomofiron.translator.Utils.Retrofit.Dictionary.Mean;
+import ru.atomofiron.translator.Utils.Retrofit.Dictionary.Syn;
+import ru.atomofiron.translator.Utils.Retrofit.Dictionary.Tr;
+import ru.atomofiron.translator.Utils.Retrofit.Dictionary.Tr_;
 import ru.atomofiron.translator.Utils.Retrofit.LangsResponse;
 import ru.atomofiron.translator.Utils.Retrofit.TranslateResponse;
 import ru.atomofiron.translator.Utils.SimpleAlphaAnimation;
@@ -40,8 +49,8 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private RecyclerView recyclerView;
 	private Button firstLangButton;
 	private Button secondLangButton;
-	private TextView resultView;
 	private ProgressView progressView;
+	private LinearLayout resultContainer;
 
 	private InputAdapter inputAdapter;
 	private Languages languages;
@@ -120,7 +129,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		recyclerView.setAdapter(inputAdapter);
 		inputAdapter.setOnInputListener(this);
 
-		resultView = (TextView) view.findViewById(R.id.result_view);
+		resultContainer = (LinearLayout) view.findViewById(R.id.result_container);
 
 		inputAdapter.add("apple");
 		inputAdapter.add("google");
@@ -161,7 +170,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	private void updateLangButtons() {
-		I.Log("wtf: "+currentFirstLangCode+" "+currentSecondLangCode);
 		new SimpleAlphaAnimation(firstLangButton, secondLangButton).start(new SimpleAlphaAnimation.OnActionListener() {
 			public void onAnimHalfway(View... views) {
 				firstLangButton.setText(languages.getByCode(currentFirstLangCode).name);
@@ -234,7 +242,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 					if (currentSecondLangCode.equals(detectResponse.getLang()))
 						swapLangs();
 
-					translate(value);
+					translate2(value);
 				} else {
 					I.Loge("DetectResponse code: "+response.code());
 					I.Toast(ac, R.string.error);
@@ -250,6 +258,25 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		});
 	}
 
+	private void translate2(String value) {
+		progressView.show();
+
+		String langs = currentFirstLangCode + "-" + currentSecondLangCode;
+		App.getApi().translate2(I.DIC_URL, I.API_KEY_DIC, langs, value, "ru").enqueue(new Callback<Main>() {
+			@Override
+			public void onResponse(Call<Main> call, Response<Main> response) {
+				if (response.isSuccessful())
+					showFullText(response.body());
+				else
+					I.Toast(ac, R.string.error);
+			}
+			@Override
+			public void onFailure(Call<Main> call, Throwable t) {
+				I.Log("onFailure: " + t);
+				I.Toast(ac, R.string.error);
+			}
+		});
+	}
 	private void translate(String value) {
 		progressView.show();
 
@@ -291,9 +318,97 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	private void showText(final String fullText) {
-		new SimpleAlphaAnimation(resultView).start(new SimpleAlphaAnimation.OnActionListener() {
+		new SimpleAlphaAnimation(resultContainer).start(new SimpleAlphaAnimation.OnActionListener() {
 			public void onAnimHalfway(View... views) {
 				((TextView)views[0]).setText(fullText);
+			}
+		});
+	}
+	private void showFullText(final Main main) {
+		I.Log(main.toString());
+		new SimpleAlphaAnimation(resultContainer).start(new SimpleAlphaAnimation.OnActionListener() {
+			public void onAnimHalfway(View... views) {
+				resultContainer.removeAllViews();
+
+				LayoutInflater inflater = LayoutInflater.from(ac);
+
+				String str;
+				if ((str = main.getDef().get(0).getText()) != null) {
+					TextView textView = (TextView) inflater.inflate(R.layout.text_view_result_main, resultContainer, false);
+					textView.setText(str);
+					resultContainer.addView(textView);
+				}
+
+				for (Def def : main.getDef()) {
+					CardView cardView = (CardView) inflater.inflate(R.layout.card_view_result, resultContainer, false);
+					LinearLayout layout = new LinearLayout(ac);
+					layout.setOrientation(LinearLayout.VERTICAL);
+					TextView textView;
+
+					for (Tr tr : def.getTr()) {
+						if ((str = tr.getPos()) != null) {
+							textView = (TextView) inflater.inflate(R.layout.text_view_result_pos, cardView, false);
+							textView.setText(str);
+							layout.addView(textView);
+						}
+						textView = null;
+
+						if ((str = tr.getText()) != null) {
+							textView = (TextView) inflater.inflate(R.layout.text_view_result_syn, cardView, false);
+							textView.setText(str);
+						}
+
+						if (tr.getSyn() != null) {
+							if (textView == null)
+								textView = (TextView) inflater.inflate(R.layout.text_view_result_syn, cardView, false);
+
+							for (Syn s : tr.getSyn()) {
+								if (s != null && (str = s.getText()) != null) {
+									if (textView.length() > 0)
+										textView.append(", ");
+
+									textView.append(str);
+								}
+							}
+						}
+						if (textView != null)
+							layout.addView(textView);
+
+						if (tr.getMean() != null) {
+							textView = (TextView) inflater.inflate(R.layout.text_view_result_mean, cardView, false);
+							textView.setText("( ");
+
+							for (Mean m : tr.getMean())
+								if ((str = m.getText()) != null) {
+									textView.append(str);
+									textView.append(" ");
+								}
+
+							textView.append(")");
+
+							if (textView.length() > 3)
+								layout.addView(textView);
+						}
+
+						if (tr.getEx() != null) {
+							for (Ex e : tr.getEx()) {
+								textView = (TextView) inflater.inflate(R.layout.text_view_result_text, cardView, false);
+
+								textView.setText(e.getText() + " - ");
+
+								for (Tr_ t : e.getTr())
+									if ((str = t.getText()) != null)
+										textView.append(str + ", ");
+
+								if (!textView.getText().equals("null - "))
+									layout.addView(textView);
+							}
+						}
+					}
+
+					cardView.addView(layout);
+					resultContainer.addView(cardView);
+				}
 			}
 		});
 	}

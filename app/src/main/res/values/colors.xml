@@ -12,4 +12,10 @@
     <color name="colorCrystalLiteGreen">#5577ff77</color>
     <color name="colorLiteGreen">#ff77ff77</color>
     <color name="colorDarkLiteGreen">#ff55cc55</color>
+
+    <color name="colorResultBlack">#ff000000</color>
+    <color name="colorResultPos">#ffa08090</color>
+    <color name="colorResultSyn">#ff507090</color>
+    <color name="colorResultMean">#ff906050</color>
+    <color name="colorResultText">#ff8090b0</color>
 </resources>

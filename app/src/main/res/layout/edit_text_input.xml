@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:background="@color/colorCrystalLiteGreen"
     android:gravity="top|left"
-    android:padding="@dimen/big_padding"
+    android:padding="@dimen/big_space"
     android:hint="@string/input_hint"
     android:imeOptions="actionDone"
     android:inputType="textAutoCorrect|textCapSentences|textMultiLine"
