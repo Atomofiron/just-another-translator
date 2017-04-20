@@ -36,13 +36,14 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private Activity ac;
 	private SharedPreferences sp;
 	private RecyclerView recyclerView;
+	private Button firstLangButton;
+	private Button secondLangButton;
+	private TextView resultView;
+
 	private InputAdapter inputAdapter;
 	private Languages languages;
 	private String currentFirstLangCode;
 	private String currentSecondLangCode;
-	private Button firstLangButton;
-	private Button secondLangButton;
-	private TextView resultView;
 
     public MainFragment() {}
 
@@ -76,7 +77,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 			@Override
 			public void onFailure(Call<LangsResponse> call, Throwable t) {
-				I.Log("onFailure(): "+t);
+				I.Loge("LangsResponse: " + t);
 			}
 		});
 
@@ -222,13 +223,13 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 					translate(value);
 				} else {
-					I.Log("DetectResponse code: "+response.code());
+					I.Loge("DetectResponse code: "+response.code());
 					I.Toast(ac, R.string.error);
 				}
 			}
 			@Override
 			public void onFailure(Call<DetectResponse> call, Throwable t) {
-				I.Log("DetectResponse: " + t);
+				I.Loge("DetectResponse: " + t);
 			}
 		});
 	}
@@ -255,13 +256,13 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 					for (String text : translateResponse.getText())
 						resultView.append(Html.fromHtml(text) + "\n");
 				} else {
-					I.Log("TranslateResponse code: "+response.code());
+					I.Loge("TranslateResponse code: "+response.code());
 					I.Toast(ac, R.string.error);
 				}
 			}
 			@Override
 			public void onFailure(Call<TranslateResponse> call, Throwable t) {
-				I.Log("TranslateResponse: " + t);
+				I.Loge("TranslateResponse: " + t);
 			}
 		});
 	}

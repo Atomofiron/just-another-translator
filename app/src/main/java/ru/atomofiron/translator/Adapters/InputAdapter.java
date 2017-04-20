@@ -109,8 +109,7 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 
 	@Override
 	public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-		I.Log("actionId: "+actionId);
-		if (onInputListener != null)
+		if (actionId == KeyEvent.KEYCODE_ENDCALL && onInputListener != null)
 			onInputListener.onInput(v.getText().toString());
 
 		return false;

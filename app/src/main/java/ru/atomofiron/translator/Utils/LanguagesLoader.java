@@ -54,6 +54,8 @@ public class LanguagesLoader extends AsyncTask<Void, Void, Languages> {
 			} catch (Exception ignored) {}
 		}
 
+		// todo to consider errors 401 and 402
+
 		// парсинг должен выполняться тоже не в UI потоке
 		return new Languages(resultJson);
 	}
