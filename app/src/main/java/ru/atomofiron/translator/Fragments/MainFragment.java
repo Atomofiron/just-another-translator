@@ -17,6 +17,7 @@ import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -52,7 +53,9 @@ import ru.atomofiron.translator.Utils.Retrofit.LangsResponse;
 import ru.atomofiron.translator.Utils.Retrofit.TranslateResponse;
 import ru.atomofiron.translator.Utils.SimpleAlphaAnimation;
 
-public class MainFragment extends Fragment implements InputAdapter.OnInputListener, View.OnClickListener {
+public class MainFragment extends Fragment implements InputAdapter.OnInputListener, View.OnClickListener, AdapterView.OnItemClickListener {
+
+	private static final int TRANSLATE_TAB_NUM = 1;
 
 	private View mainView = null;
 	private Activity ac;
@@ -66,6 +69,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private ProgressView progressView;
 	private LinearLayout resultContainer;
 	private TextView yandexView;
+	private ViewPager viewPager;
 
 	private InputAdapter inputAdapter;
 	private Languages languages;
@@ -177,6 +181,8 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		favoriteAdapter = new ListAdapter(ac, base, Node.typeFavorite);
 		historyListView.setAdapter(historyAdapter);
 		favoriteListView.setAdapter(favoriteAdapter);
+		historyListView.setOnItemClickListener(this);
+		favoriteListView.setOnItemClickListener(this);
 
 		ArrayList<View> viewList = new ArrayList<>();
 		viewList.add(historyListView);
@@ -184,9 +190,9 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		viewList.add(favoriteListView);
 
 		ViewPagerAdapter pagerAdapter = new ViewPagerAdapter(ac, viewList);
-		ViewPager viewPager = (ViewPager) view.findViewById(R.id.view_pager);
+		viewPager = (ViewPager) view.findViewById(R.id.view_pager);
 		viewPager.setAdapter(pagerAdapter);
-		viewPager.setCurrentItem(1);
+		viewPager.setCurrentItem(TRANSLATE_TAB_NUM);
 		((TabLayout) view.findViewById(R.id.tab_layout)).setupWithViewPager(viewPager);
 
 		resultContainer = (LinearLayout) scrollView.findViewById(R.id.result_container);
@@ -565,5 +571,19 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			clearResult();
 	}
 
+	@Override
+	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		Node node = ((ListAdapter)parent.getAdapter()).getItem(position);
+		String[] dir = node.dir.split("-");
 
+		currentFirstLangCode = dir[0];
+		currentSecondLangCode = dir[1];
+		updateLangButtons();
+
+		queryPhrase = node.title;
+		inputAdapter.add(node);
+
+		translate(node.title);
+		viewPager.setCurrentItem(TRANSLATE_TAB_NUM);
+	}
 }

@@ -14,7 +14,7 @@
         android:id="@+id/icon"
         app:srcCompat="@drawable/ic_bookmark"
         android:layout_gravity="center_vertical"
-        android:layout_margin="@dimen/big_space"
+        android:padding="@dimen/big_space"
         />
 
     <LinearLayout
