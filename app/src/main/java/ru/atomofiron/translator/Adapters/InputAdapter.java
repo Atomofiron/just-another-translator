@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -66,8 +67,12 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 
 			private void slide(RecyclerView recyclerView) {
 				needSlide = false;
-
 				currentPosition = offset < (screenWidth / 2) ? 0 : 1;
+
+				if (onInputListener != null)
+					onInputListener.onSlide(((EditText)recyclerView
+							.getChildAt(currentPosition)).getText().toString());
+
 				recyclerView.smoothScrollToPosition(
 						recyclerView.getChildAdapterPosition(
 								recyclerView.getChildAt(currentPosition)));
@@ -145,5 +150,6 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 
 	public interface OnInputListener {
 		void onInput(String text);
+		void onSlide(String text);
 	}
 }

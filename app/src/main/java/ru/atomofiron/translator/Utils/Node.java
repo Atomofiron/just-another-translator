@@ -30,4 +30,9 @@ public class Node {
 
 		return title.equals(node.title) && subtitle.equals(node.subtitle) && dir.equals(node.dir);
 	}
+
+	@Override
+	public String toString() {
+		return "Node : { " + title + " : " + subtitle + " : " + dir + " : " + getType() + " }";
+	}
 }

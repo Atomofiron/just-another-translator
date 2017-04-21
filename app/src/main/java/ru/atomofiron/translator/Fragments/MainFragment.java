@@ -18,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ScrollView;
@@ -56,9 +57,12 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private View mainView = null;
 	private Activity ac;
 	private SharedPreferences sp;
+	private Base base;
+
 	private RecyclerView recyclerView;
 	private Button firstLangButton;
 	private Button secondLangButton;
+	private ImageButton favoriteButton;
 	private ProgressView progressView;
 	private LinearLayout resultContainer;
 	private TextView yandexView;
@@ -69,6 +73,8 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private String currentSecondLangCode;
 	private String queryPhrase;
 	private String resultPhrase;
+	private ListAdapter historyAdapter;
+	private ListAdapter favoriteAdapter;
 
     public MainFragment() {}
 
@@ -78,6 +84,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 		ac = getActivity();
 		sp = I.SP(ac);
+		base = new Base(ac);
 
 		/*new LanguagesLoader(I.getUICode(ac), new LanguagesLoader.OnLoadedListener() {
 			public void onLoaded(Languages languages) {
@@ -119,6 +126,13 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	@Override
+	public void onDestroy() {
+		super.onDestroy();
+
+		base.close();
+	}
+
+	@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) { // вот щас вообще не до гранулированности коммитов
 
@@ -131,7 +145,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
     }
 
     private void init(View view) {
-		Base base = new Base(ac);
 		progressView = (ProgressView) view.findViewById(R.id.progress_view);
 
 		recyclerView = (RecyclerView) view.findViewById(R.id.input_recycler_view);
@@ -144,9 +157,13 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 		firstLangButton = (Button) mainView.findViewById(R.id.first_language);
 		secondLangButton = (Button) mainView.findViewById(R.id.second_language);
-		mainView.findViewById(R.id.swap_langs).setOnClickListener(this);
+		favoriteButton = (ImageButton) mainView.findViewById(R.id.btn_bookmark);
 		firstLangButton.setOnClickListener(this);
 		secondLangButton.setOnClickListener(this);
+		favoriteButton.setOnClickListener(this);
+		mainView.findViewById(R.id.swap_langs).setOnClickListener(this);
+		mainView.findViewById(R.id.btn_voice).setOnClickListener(this);
+		mainView.findViewById(R.id.btn_volume).setOnClickListener(this);
 
 		LayoutInflater inflater = LayoutInflater.from(ac);
 
@@ -154,8 +171,10 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		ScrollView scrollView = (ScrollView) inflater.inflate(R.layout.layout_scroll_result, null, false);
 		ListView favoriteListView = new ListView(ac);
 
-		historyListView.setAdapter(new ListAdapter(ac, base, Node.typeHistory));
-		favoriteListView.setAdapter(new ListAdapter(ac, base, Node.typeFavorite));
+		historyAdapter = new ListAdapter(ac, base, Node.typeHistory);
+		favoriteAdapter = new ListAdapter(ac, base, Node.typeFavorite);
+		historyListView.setAdapter(historyAdapter);
+		favoriteListView.setAdapter(favoriteAdapter);
 
 		ArrayList<View> viewList = new ArrayList<>();
 		viewList.add(historyListView);
@@ -194,6 +213,13 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			case R.id.swap_langs:
 				if (!swapLangs())
 					I.Toast(ac, R.string.lang_hasnt_translation);
+				break;
+			case R.id.btn_voice:
+				break;
+			case R.id.btn_volume:
+				break;
+			case R.id.btn_bookmark:
+				addToFavorite(v);
 				break;
 		}
 	}
@@ -256,9 +282,43 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	private void addToHistory() {
-		if (resultPhrase != null)
-			inputAdapter.add(new Node(queryPhrase, resultPhrase,
-					currentFirstLangCode + "-" + currentSecondLangCode, Node.typeHistory));
+		Node node = getCurrentNode(Node.typeHistory);
+		if (node == null)
+			return;
+
+		inputAdapter.add(node);
+
+		historyAdapter.update();
+	}
+	private void addToFavorite(View v) {
+		I.Log("addToFavorite()");
+		Node node = getCurrentNode(Node.typeFavorite);
+		if (node == null)
+			return;
+
+		I.Log(node.toString());
+
+		if (base.contains(node)) {
+			I.Log("remove: "+base.remove(node));
+			v.setActivated(false);
+		} else {
+			I.Log("put: "+base.put(node));
+			v.setActivated(true);
+		}
+
+		I.Log("favoriteAdapter.update()");
+		favoriteAdapter.update();
+	}
+
+	private Node getCurrentNode(String type) {
+		if (queryPhrase == null || resultPhrase == null)
+			return null;
+
+		return new Node(queryPhrase, resultPhrase, getCurrentLangs(), type);
+	}
+
+	private String getCurrentLangs() {
+		return currentFirstLangCode + "-" + currentSecondLangCode;
 	}
 
 	private void updateLangsAndTranslate(final String value) {
@@ -288,10 +348,10 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		});
 	}
 
-	private void translate2(String value) {
+	private void translateWord(String value) {
 		progressView.show();
 
-		String langs = currentFirstLangCode + "-" + currentSecondLangCode;
+		String langs = getCurrentLangs();
 		App.getApi().translate2(I.DIC_URL, I.API_KEY_DIC, langs, value, I.getUICode(ac)).enqueue(new Callback<Main>() {
 			@Override
 			public void onResponse(Call<Main> call, Response<Main> response) {
@@ -337,11 +397,13 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 					}
 
 					resultPhrase = textBuilder.toString();
-					I.Log("resultPhrase: "+resultPhrase);
+					addToHistory();
+					checkIfFavorite();
+
 					if (value.contains(" "))
 						showText();
 					else
-						translate2(value);
+						translateWord(value);
 				} else {
 					I.Loge("TranslateResponse code: "+response.code());
 					I.Toast(ac, R.string.error);
@@ -358,8 +420,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	private void showText() {
-		addToHistory();
-
 		new SimpleAlphaAnimation(resultContainer).start(new SimpleAlphaAnimation.OnActionListener() {
 			public void onAnimHalfway(View... views) {
 				resultContainer.removeAllViews();
@@ -471,12 +531,31 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		ed.apply();
 	}
 
+	private void clearResult() {
+		resultPhrase = null;
+		resultContainer.removeAllViews();
+	}
+
+	private void checkIfFavorite() {
+		favoriteButton.setActivated(base.contains(getCurrentNode(Node.typeFavorite)));
+	}
+
 	public void onInput(String text) {
 		queryPhrase = text;
 		if (text.isEmpty())
 			return;
 
 		updateLangsAndTranslate(queryPhrase);
+	}
+
+	@Override
+	public void onSlide(String text) {
+		queryPhrase = text;
+		clearResult();
+		favoriteButton.setActivated(false);
+
+		if (!text.isEmpty())
+			translate(text);
 	}
 
 

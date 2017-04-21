@@ -29,13 +29,27 @@ public class Base {
 	}
 
 	public long put(Node node) {
+		if (contains(node))
+			return 0;
+
 		ContentValues cv = new ContentValues();
 		cv.put(colTitle, node.title);
 		cv.put(colSubTitle, node.subtitle);
 		cv.put(colDir, node.dir);
-		cv.put(colType, node.isHistory ? Node.typeHistory : Node.typeFavorite);
+		cv.put(colType, node.getType());
 
 		return db.insert(tableName, null, cv);
+	}
+	public boolean contains(Node node) {
+		Cursor cursor = db.rawQuery("select * from " + tableName +
+						" where " + colTitle+"=? and "+colSubTitle+"=? and "+colDir+"=? and "+colType+"=? ",
+				new String[] { node.title, node.subtitle, node.dir, node.getType() });
+		boolean contains = cursor.getCount() > 0;
+		I.Log("count: "+cursor.getCount());
+		I.Log("moveToFirst: "+cursor.moveToFirst());
+		cursor.close();
+
+		return contains;
 	}
 
 	public ArrayList<Node> get(String type) {
@@ -45,12 +59,13 @@ public class Base {
 			Cursor cursor;
 			cursor = db.rawQuery("select * from " + tableName + " where " + colType + "=?;", new String[] { type });
 
-			while (cursor.moveToNext()) {
-				String title = cursor.getString(cursor.getColumnIndex(colTitle));
-				String subtitle = cursor.getString(cursor.getColumnIndex(colSubTitle));
-				String dir = cursor.getString(cursor.getColumnIndex(colDir));
-				nodes.add(new Node(title, subtitle, dir, type));
-			}
+			 if (cursor.moveToFirst())
+			 	do {
+					String title = cursor.getString(cursor.getColumnIndex(colTitle));
+					String subtitle = cursor.getString(cursor.getColumnIndex(colSubTitle));
+					String dir = cursor.getString(cursor.getColumnIndex(colDir));
+					nodes.add(new Node(title, subtitle, dir, type));
+				} while (cursor.moveToNext());
 
 			cursor.close();
 		} catch (Exception e) {

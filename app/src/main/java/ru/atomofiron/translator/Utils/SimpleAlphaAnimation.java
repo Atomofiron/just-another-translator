@@ -20,30 +20,22 @@ public class SimpleAlphaAnimation implements Animation.AnimationListener {
 		onActionListener = listener;
 		count = 0;
 
-		for (View view : views)
-			if (view.getVisibility() != View.GONE) {
-				I.Log("startAnimation...");
+		for (View view : views) {
 				Animation anim = new AlphaAnimation(1, 0);
 				anim.setDuration(200);
 				anim.setAnimationListener(this);
 
+				I.Log("startAnimation()");
 				view.startAnimation(anim);
-			} else {
-				view.setVisibility(View.VISIBLE);
-				count++;
 			}
 
-		animIfNecessary();
 	}
 
 	@Override
 	public void onAnimationEnd(Animation animation) {
+		I.Log("onAnimationEnd() "+count);
 		count++;
 
-		animIfNecessary();
-	}
-
-	private void animIfNecessary() {
 		if (views.length != count)
 			return;
 
@@ -56,6 +48,7 @@ public class SimpleAlphaAnimation implements Animation.AnimationListener {
 		for (View view : views)
 			view.startAnimation(anim);
 	}
+
 
 	@Override
 	public void onAnimationStart(Animation animation) {}
