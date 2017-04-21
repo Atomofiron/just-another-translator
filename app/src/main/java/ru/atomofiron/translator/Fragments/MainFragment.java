@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import ru.atomofiron.translator.Adapters.ListAdapter;
 import ru.atomofiron.translator.Adapters.ViewPagerAdapter;
 import ru.atomofiron.translator.App;
 import ru.atomofiron.translator.CustomViews.ProgressView;
@@ -35,7 +36,9 @@ import ru.atomofiron.translator.I;
 import ru.atomofiron.translator.Adapters.InputAdapter;
 import ru.atomofiron.translator.R;
 import ru.atomofiron.translator.Utils.AsyncJob;
+import ru.atomofiron.translator.Utils.Base;
 import ru.atomofiron.translator.Utils.Languages;
+import ru.atomofiron.translator.Utils.Node;
 import ru.atomofiron.translator.Utils.Retrofit.DetectResponse;
 import ru.atomofiron.translator.Utils.Retrofit.Dictionary.Def;
 import ru.atomofiron.translator.Utils.Retrofit.Dictionary.Ex;
@@ -64,6 +67,8 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private Languages languages;
 	private String currentFirstLangCode;
 	private String currentSecondLangCode;
+	private String queryPhrase;
+	private String resultPhrase;
 
     public MainFragment() {}
 
@@ -126,20 +131,16 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
     }
 
     private void init(View view) {
-		LayoutInflater inflater = LayoutInflater.from(ac);
+		Base base = new Base(ac);
+		progressView = (ProgressView) view.findViewById(R.id.progress_view);
 
 		recyclerView = (RecyclerView) view.findViewById(R.id.input_recycler_view);
-		inputAdapter = new InputAdapter(recyclerView, I.getScreenWidth(ac));
 
 		recyclerView.setLayoutManager
 				(new LinearLayoutManager(ac, LinearLayoutManager.HORIZONTAL, false));
+		inputAdapter = new InputAdapter(recyclerView, base, I.getScreenWidth(ac));
 		recyclerView.setAdapter(inputAdapter);
 		inputAdapter.setOnInputListener(this);
-
-		inputAdapter.add("apple");
-		inputAdapter.add("google");
-		inputAdapter.add("one plus");
-		inputAdapter.add("yandex");
 
 		firstLangButton = (Button) mainView.findViewById(R.id.first_language);
 		secondLangButton = (Button) mainView.findViewById(R.id.second_language);
@@ -147,12 +148,16 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		firstLangButton.setOnClickListener(this);
 		secondLangButton.setOnClickListener(this);
 
-		progressView = (ProgressView) view.findViewById(R.id.progress_view);
+		LayoutInflater inflater = LayoutInflater.from(ac);
 
-		ArrayList<View> viewList = new ArrayList<>();
 		ListView historyListView = new ListView(ac);
 		ScrollView scrollView = (ScrollView) inflater.inflate(R.layout.layout_scroll_result, null, false);
 		ListView favoriteListView = new ListView(ac);
+
+		historyListView.setAdapter(new ListAdapter(ac, base, Node.typeHistory));
+		favoriteListView.setAdapter(new ListAdapter(ac, base, Node.typeFavorite));
+
+		ArrayList<View> viewList = new ArrayList<>();
 		viewList.add(historyListView);
 		viewList.add(scrollView);
 		viewList.add(favoriteListView);
@@ -250,9 +255,10 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		return true;
 	}
 
-	private void addToHistory(String value) {
-		// todo add to real history
-		inputAdapter.add(value);
+	private void addToHistory() {
+		if (resultPhrase != null)
+			inputAdapter.add(new Node(queryPhrase, resultPhrase,
+					currentFirstLangCode + "-" + currentSecondLangCode, Node.typeHistory));
 	}
 
 	private void updateLangsAndTranslate(final String value) {
@@ -266,7 +272,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 					if (currentSecondLangCode.equals(detectResponse.getLang()))
 						swapLangs();
 
-					translate2(value);
+					translate(value);
 				} else {
 					I.Loge("DetectResponse code: "+response.code());
 					I.Toast(ac, R.string.error);
@@ -301,7 +307,8 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			}
 		});
 	}
-	private void translate(String value) {
+	private void translate(final String value) {
+		resultPhrase = null;
 		progressView.show();
 
 		App.getApi().translate(I.API_KEY, value, currentSecondLangCode, "plain").enqueue(new Callback<TranslateResponse>() {
@@ -322,10 +329,19 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 					}
 
 					StringBuilder textBuilder = new StringBuilder("");
-					for (String text : translateResponse.getText())
-						textBuilder.append(Html.fromHtml(text)).append("\n");
+					for (String text : translateResponse.getText()) {
+						if (textBuilder.length() > 0)
+							textBuilder.append("\n");
 
-					showText(textBuilder.toString());
+						textBuilder.append(Html.fromHtml(text));
+					}
+
+					resultPhrase = textBuilder.toString();
+					I.Log("resultPhrase: "+resultPhrase);
+					if (value.contains(" "))
+						showText();
+					else
+						translate2(value);
 				} else {
 					I.Loge("TranslateResponse code: "+response.code());
 					I.Toast(ac, R.string.error);
@@ -341,102 +357,111 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		});
 	}
 
-	private void showText(final String fullText) {
+	private void showText() {
+		addToHistory();
+
 		new SimpleAlphaAnimation(resultContainer).start(new SimpleAlphaAnimation.OnActionListener() {
 			public void onAnimHalfway(View... views) {
-				((TextView)views[0]).setText(fullText);
+				resultContainer.removeAllViews();
+				TextView textView = (TextView) LayoutInflater.from(ac)
+						.inflate(R.layout.text_view_result_main, resultContainer, false);
+				textView.setText(resultPhrase);
+				resultContainer.addView(textView);
 			}
 		});
 	}
 	private void showFullText(final Main main) {
-		I.Log(main.toString());
+		I.Log("showFullText() "+(resultContainer == null));
+		addToHistory();
+
 		new SimpleAlphaAnimation(resultContainer).start(new SimpleAlphaAnimation.OnActionListener() {
 			public void onAnimHalfway(View... views) {
-				resultContainer.removeAllViews();
-
-				LayoutInflater inflater = LayoutInflater.from(ac);
-
-
-				String str;
-				if ((str = main.getDef().get(0).getTr().get(0).getText()) != null) {
-					TextView textView = (TextView) inflater.inflate(R.layout.text_view_result_main, resultContainer, false);
-					textView.setText(str);
-					resultContainer.addView(textView);
-				}
-
-				for (Def def : main.getDef()) {
-					CardView cardView = (CardView) inflater.inflate(R.layout.card_view_result, resultContainer, false);
-					LinearLayout layout = new LinearLayout(ac);
-					layout.setOrientation(LinearLayout.VERTICAL);
-					TextView textView;
-
-					for (Tr tr : def.getTr()) {
-						if ((str = tr.getPos()) != null) {
-							textView = (TextView) inflater.inflate(R.layout.text_view_result_pos, cardView, false);
-							textView.setText(str);
-							layout.addView(textView);
-						}
-						textView = null;
-
-						if ((str = tr.getText()) != null) {
-							textView = (TextView) inflater.inflate(R.layout.text_view_result_syn, cardView, false);
-							textView.setText(str);
-						}
-
-						if (tr.getSyn() != null) {
-							if (textView == null)
-								textView = (TextView) inflater.inflate(R.layout.text_view_result_syn, cardView, false);
-
-							for (Syn s : tr.getSyn()) {
-								if (s != null && (str = s.getText()) != null) {
-									if (textView.length() > 0)
-										textView.append(", ");
-
-									textView.append(str);
-								}
-							}
-						}
-						if (textView != null)
-							layout.addView(textView);
-
-						if (tr.getMean() != null) {
-							textView = (TextView) inflater.inflate(R.layout.text_view_result_mean, cardView, false);
-							textView.setText("( ");
-
-							for (Mean m : tr.getMean())
-								if ((str = m.getText()) != null) {
-									textView.append(str);
-									textView.append(" ");
-								}
-
-							textView.append(")");
-
-							if (textView.length() > 3)
-								layout.addView(textView);
-						}
-
-						if (tr.getEx() != null) {
-							for (Ex e : tr.getEx()) {
-								textView = (TextView) inflater.inflate(R.layout.text_view_result_text, cardView, false);
-
-								textView.setText(e.getText() + " - ");
-
-								for (Tr_ t : e.getTr())
-									if ((str = t.getText()) != null)
-										textView.append(str + ", ");
-
-								if (!textView.getText().equals("null - "))
-									layout.addView(textView);
-							}
-						}
-					}
-
-					cardView.addView(layout);
-					resultContainer.addView(cardView);
-				}
-				resultContainer.addView(yandexView);
+				parseTranslate(main);
 			}
 		});
+	}
+
+	private void parseTranslate(Main main) {
+		I.Log("showFullText(): SimpleAlphaAnimation");
+		resultContainer.removeAllViews();
+
+		LayoutInflater inflater = LayoutInflater.from(ac);
+
+		String str;
+		TextView textView = (TextView) inflater.inflate(R.layout.text_view_result_main, resultContainer, false);
+		textView.setText(resultPhrase);
+		resultContainer.addView(textView);
+
+		for (Def def : main.getDef()) {
+			CardView cardView = (CardView) inflater.inflate(R.layout.card_view_result, resultContainer, false);
+			LinearLayout layout = new LinearLayout(ac);
+			layout.setOrientation(LinearLayout.VERTICAL);
+
+			for (Tr tr : def.getTr()) {
+				if ((str = tr.getPos()) != null) {
+					textView = (TextView) inflater.inflate(R.layout.text_view_result_pos, cardView, false);
+					textView.setText(str);
+					layout.addView(textView);
+				}
+				textView = null;
+
+				if ((str = tr.getText()) != null) {
+					textView = (TextView) inflater.inflate(R.layout.text_view_result_syn, cardView, false);
+					textView.setText(str);
+				}
+
+				if (tr.getSyn() != null) {
+					if (textView == null)
+						textView = (TextView) inflater.inflate(R.layout.text_view_result_syn, cardView, false);
+
+					for (Syn s : tr.getSyn()) {
+						if (s != null && (str = s.getText()) != null) {
+							if (textView.length() > 0)
+								textView.append(", ");
+
+							textView.append(str);
+						}
+					}
+				}
+				if (textView != null)
+					layout.addView(textView);
+
+				if (tr.getMean() != null) {
+					textView = (TextView) inflater.inflate(R.layout.text_view_result_mean, cardView, false);
+					textView.setText("( ");
+
+					for (Mean m : tr.getMean())
+						if ((str = m.getText()) != null) {
+							textView.append(str);
+							textView.append(" ");
+						}
+
+					textView.append(")");
+
+					if (textView.length() > 3)
+						layout.addView(textView);
+				}
+
+				if (tr.getEx() != null) {
+					for (Ex e : tr.getEx()) {
+						textView = (TextView) inflater.inflate(R.layout.text_view_result_text, cardView, false);
+
+						textView.setText(e.getText() + " - ");
+
+						for (Tr_ t : e.getTr())
+							if ((str = t.getText()) != null)
+								textView.append(str + ", ");
+
+						if (!textView.getText().equals("null - "))
+							layout.addView(textView);
+					}
+				}
+			}
+
+			cardView.addView(layout);
+			resultContainer.addView(cardView);
+		}
+		resultContainer.addView(yandexView);
 	}
 
 	private void saveCurrentLangs() {
@@ -447,12 +472,11 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	public void onInput(String text) {
-		I.Log("onInput: "+text);
+		queryPhrase = text;
 		if (text.isEmpty())
 			return;
 
-		addToHistory(text);
-		updateLangsAndTranslate(text);
+		updateLangsAndTranslate(queryPhrase);
 	}
 
 

@@ -12,18 +12,24 @@ import java.util.ArrayList;
 import ru.atomofiron.translator.CustomViews.ExEditText;
 import ru.atomofiron.translator.I;
 import ru.atomofiron.translator.R;
+import ru.atomofiron.translator.Utils.Base;
+import ru.atomofiron.translator.Utils.Node;
 
 public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> implements ValueAnimator.AnimatorUpdateListener, TextView.OnEditorActionListener {
 
 	private RecyclerView recyclerView;
 	private int screenWidth;
-	private final ArrayList<String> list = new ArrayList<>();
+	private final ArrayList<Node> list = new ArrayList<>();
 	private OnInputListener onInputListener = null;
 	private int currentPosition = -1;
+	private Base base;
 
-	public InputAdapter(RecyclerView recyclerView, final int screenWidth) {
+	public InputAdapter(RecyclerView recyclerView, Base base, final int screenWidth) {
 		this.recyclerView = recyclerView;
+		this.base = base;
 		this.screenWidth = screenWidth;
+
+		updateList(base.get(Node.typeHistory));
 
 		recyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
 			private int offset = 0;
@@ -86,7 +92,7 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 
 	@Override
 	public void onBindViewHolder(ViewHolder holder, int position) {
-		holder.editText.setText(position >= list.size() ? "" : list.get(position));
+		holder.editText.setText(position >= list.size() ? "" : list.get(position).title);
 		holder.editText.setWidth(screenWidth);
 	}
 
@@ -95,20 +101,21 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 		return list.size() + 1;
 	}
 
-	public void updateList(ArrayList<String> list) {
+	public void updateList(ArrayList<Node> list) {
 		this.list.clear();
 		this.list.addAll(list);
 
 		notifyDataSetChanged();
-		recyclerView.scrollToPosition(list.size() - 1);
+		recyclerView.scrollToPosition(list.size());
 	}
 
-	public void add(String string) {
+	public void add(Node node) {
 		if (recyclerView.isComputingLayout())
 			return;
 
-		list.remove(string);
-		list.add(string);
+		list.remove(node);
+		list.add(node);
+		base.put(node);
 
 		notifyDataSetChanged();
 		recyclerView.scrollToPosition(list.size() - 1);

@@ -51,6 +51,10 @@ public class I {
 		return co.getResources().getConfiguration().locale.getLanguage();
 	}
 
+	public static String getFilesPath(Context co) {
+		return co.getFilesDir().getAbsolutePath();
+	}
+
 	public static void initColors(Activity ac) {
 		CODE_COLOR_POS = ac.getResources().getColor(R.color.colorResultPos);
 		CODE_COLOR_TEXT = ac.getResources().getColor(R.color.colorResultText);

@@ -4,11 +4,13 @@ import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
+import ru.atomofiron.translator.I;
+
 public class SimpleAlphaAnimation implements Animation.AnimationListener {
 
 	private OnActionListener onActionListener = null;
 	private View[] views;
-	private int count;
+	private int count = 0;
 
 	public SimpleAlphaAnimation(View... views) {
 		this.views = views;
@@ -18,29 +20,41 @@ public class SimpleAlphaAnimation implements Animation.AnimationListener {
 		onActionListener = listener;
 		count = 0;
 
-		for (View view : views) {
-			Animation anim = new AlphaAnimation(1, 0);
-			anim.setDuration(200);
-			anim.setAnimationListener(this);
+		for (View view : views)
+			if (view.getVisibility() != View.GONE) {
+				I.Log("startAnimation...");
+				Animation anim = new AlphaAnimation(1, 0);
+				anim.setDuration(200);
+				anim.setAnimationListener(this);
 
-			view.startAnimation(anim);
-		}
+				view.startAnimation(anim);
+			} else {
+				view.setVisibility(View.VISIBLE);
+				count++;
+			}
+
+		animIfNecessary();
 	}
 
 	@Override
 	public void onAnimationEnd(Animation animation) {
 		count++;
 
-		if (views.length == count) {
-			if (onActionListener != null)
-				onActionListener.onAnimHalfway(views);
+		animIfNecessary();
+	}
 
-			Animation anim = new AlphaAnimation(0, 1);
-			anim.setDuration(200);
+	private void animIfNecessary() {
+		if (views.length != count)
+			return;
 
-			for (View view : views)
-				view.startAnimation(anim);
-		}
+		if (onActionListener != null)
+			onActionListener.onAnimHalfway(views);
+
+		Animation anim = new AlphaAnimation(0, 1);
+		anim.setDuration(200);
+
+		for (View view : views)
+			view.startAnimation(anim);
 	}
 
 	@Override
