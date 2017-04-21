@@ -11,7 +11,6 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import ru.atomofiron.translator.CustomViews.ExEditText;
-import ru.atomofiron.translator.I;
 import ru.atomofiron.translator.R;
 import ru.atomofiron.translator.Utils.Base;
 import ru.atomofiron.translator.Utils.Node;
@@ -34,22 +33,17 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 
 		recyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
 			private int offset = 0;
-			private int lastState = -1;
-			private boolean needSlide = false;
+			private boolean alreadySlided = false;
 
 			@Override
 			public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
 				super.onScrollStateChanged(recyclerView, newState);
 
-				if (lastState == RecyclerView.SCROLL_STATE_DRAGGING &&
-						newState == RecyclerView.SCROLL_STATE_SETTLING)
-					needSlide = true;
-
-				if (newState == RecyclerView.SCROLL_STATE_IDLE &&
-						(lastState == RecyclerView.SCROLL_STATE_DRAGGING || offset == 0))
+				if (newState == RecyclerView.SCROLL_STATE_IDLE && !alreadySlided)
 					slide(recyclerView);
-
-				lastState = newState;
+				else
+					if (newState == RecyclerView.SCROLL_STATE_DRAGGING)
+						alreadySlided = false;
 			}
 
 			@Override
@@ -57,15 +51,13 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 				super.onScrolled(recyclerView, dx, dy);
 				offset += dx;
 				offset = offset % screenWidth;
+
 				while (offset < 0)
 					offset += screenWidth;
-
-				if (needSlide && lastState != RecyclerView.SCROLL_STATE_DRAGGING && Math.abs(dx) < 10)
-					slide(recyclerView);
 			}
 
 			private void slide(RecyclerView recyclerView) {
-				needSlide = false;
+				alreadySlided = true;
 				currentPosition = offset < (screenWidth / 2) ? 0 : 1;
 
 				if (onInputListener != null)
