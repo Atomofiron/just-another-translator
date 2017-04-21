@@ -44,9 +44,8 @@ public class Base {
 		Cursor cursor = db.rawQuery("select * from " + tableName +
 						" where " + colTitle+"=? and "+colSubTitle+"=? and "+colDir+"=? and "+colType+"=? ",
 				new String[] { node.title, node.subtitle, node.dir, node.getType() });
+
 		boolean contains = cursor.getCount() > 0;
-		I.Log("count: "+cursor.getCount());
-		I.Log("moveToFirst: "+cursor.moveToFirst());
 		cursor.close();
 
 		return contains;

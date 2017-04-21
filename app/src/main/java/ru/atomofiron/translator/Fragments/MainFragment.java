@@ -76,6 +76,8 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private ListAdapter historyAdapter;
 	private ListAdapter favoriteAdapter;
 
+	private boolean needAddToHistory;
+
     public MainFragment() {}
 
 	@Override
@@ -282,31 +284,29 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	private void addToHistory() {
+		if (!needAddToHistory)
+			return;
+
 		Node node = getCurrentNode(Node.typeHistory);
 		if (node == null)
 			return;
 
 		inputAdapter.add(node);
-
 		historyAdapter.update();
 	}
 	private void addToFavorite(View v) {
-		I.Log("addToFavorite()");
 		Node node = getCurrentNode(Node.typeFavorite);
 		if (node == null)
 			return;
 
-		I.Log(node.toString());
-
 		if (base.contains(node)) {
-			I.Log("remove: "+base.remove(node));
+			base.remove(node);
 			v.setActivated(false);
 		} else {
-			I.Log("put: "+base.put(node));
+			base.put(node);
 			v.setActivated(true);
 		}
 
-		I.Log("favoriteAdapter.update()");
 		favoriteAdapter.update();
 	}
 
@@ -362,7 +362,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			}
 			@Override
 			public void onFailure(Call<Main> call, Throwable t) {
-				I.Log("onFailure: " + t);
+				I.Loge("onFailure: " + t);
 				I.Toast(ac, R.string.error);
 			}
 		});
@@ -541,21 +541,28 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	public void onInput(String text) {
-		queryPhrase = text;
+		favoriteButton.setActivated(false);
+		queryPhrase = null;
+
 		if (text.isEmpty())
 			return;
 
-		updateLangsAndTranslate(queryPhrase);
+		queryPhrase = text;
+		needAddToHistory = true;
+		updateLangsAndTranslate(text);
 	}
 
 	@Override
 	public void onSlide(String text) {
-		queryPhrase = text;
-		clearResult();
 		favoriteButton.setActivated(false);
+		queryPhrase = null;
 
-		if (!text.isEmpty())
-			translate(text);
+		if (!text.isEmpty()) {
+			queryPhrase = text;
+			needAddToHistory = false;
+			updateLangsAndTranslate(text);
+		} else
+			clearResult();
 	}
 
 

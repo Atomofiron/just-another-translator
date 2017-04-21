@@ -38,7 +38,7 @@ public class Languages {
 
 			checkIfNull();
 		} catch (JSONException e) {
-			I.Log(e.toString());
+			I.Loge(e.toString());
 		}
 	}
 

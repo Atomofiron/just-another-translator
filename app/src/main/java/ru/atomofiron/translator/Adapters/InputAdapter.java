@@ -40,14 +40,13 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 			@Override
 			public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
 				super.onScrollStateChanged(recyclerView, newState);
-				I.Log("onScrollStateChanged() "+newState);
 
 				if (lastState == RecyclerView.SCROLL_STATE_DRAGGING &&
 						newState == RecyclerView.SCROLL_STATE_SETTLING)
 					needSlide = true;
 
-				if (lastState == RecyclerView.SCROLL_STATE_DRAGGING &&
-						newState == RecyclerView.SCROLL_STATE_IDLE)
+				if (newState == RecyclerView.SCROLL_STATE_IDLE &&
+						(lastState == RecyclerView.SCROLL_STATE_DRAGGING || offset == 0))
 					slide(recyclerView);
 
 				lastState = newState;
