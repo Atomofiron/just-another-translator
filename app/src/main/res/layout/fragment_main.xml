@@ -24,39 +24,16 @@
             android:id="@+id/input_recycler_view"
             />
 
-        <LinearLayout
+        <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/actions_layout"
-            android:orientation="horizontal"
+            android:id="@+id/btn_bookmark"
+            app:srcCompat="@drawable/ic_bookmark_selector"
+            android:background="?android:attr/selectableItemBackground"
+            android:padding="@dimen/middle_space"
             android:layout_gravity="right"
-            android:visibility="gone">
-
-            <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/btn_voice"
-                app:srcCompat="@drawable/ic_voice"
-                android:background="?android:attr/selectableItemBackground"
-                android:padding="@dimen/middle_space"
-                />
-            <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/btn_volume"
-                app:srcCompat="@drawable/ic_volume_up"
-                android:background="?android:attr/selectableItemBackground"
-                android:padding="@dimen/middle_space"
-                />
-            <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/btn_bookmark"
-                app:srcCompat="@drawable/ic_bookmark_selector"
-                android:background="?android:attr/selectableItemBackground"
-                android:padding="@dimen/middle_space"
-                />
-        </LinearLayout>
+            android:visibility="gone"
+            />
     </LinearLayout>
 
 

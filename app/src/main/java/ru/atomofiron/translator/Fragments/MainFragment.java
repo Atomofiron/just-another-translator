@@ -155,11 +155,9 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		swapButton.setVisibility(View.VISIBLE);
 		swapButton.setOnClickListener(this);
 
-		mainView.findViewById(R.id.actions_layout).setVisibility(View.VISIBLE);
 		favoriteButton = (ImageButton) mainView.findViewById(R.id.btn_bookmark);
+		favoriteButton.setVisibility(View.VISIBLE);
 		favoriteButton.setOnClickListener(this);
-		mainView.findViewById(R.id.btn_voice).setOnClickListener(this);
-		mainView.findViewById(R.id.btn_volume).setOnClickListener(this);
 
 		LayoutInflater inflater = LayoutInflater.from(ac);
 
@@ -556,10 +554,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 				break;
 			case R.id.swap_langs:
 				swapLangs();
-				break;
-			case R.id.btn_voice:
-				break;
-			case R.id.btn_volume:
 				break;
 			case R.id.btn_bookmark:
 				addToFavorite(v);
