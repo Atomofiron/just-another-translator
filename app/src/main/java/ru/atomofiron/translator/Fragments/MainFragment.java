@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ScrollView;
@@ -68,6 +69,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private LinearLayout resultContainer;
 	private TextView yandexView;
 	private ViewPager viewPager;
+	private ImageView catView;
 
 	private InputAdapter inputAdapter;
 	private Languages languages;
@@ -192,6 +194,9 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		yandexView = (TextView) inflater.inflate(R.layout.text_view_yandex, null, false);
 		yandexView.setText(Html.fromHtml(ac.getString(R.string.yandex_label)));
 		yandexView.setMovementMethod(LinkMovementMethod.getInstance());
+
+		catView = (ImageView) inflater.inflate(R.layout.image_view_cat, resultContainer, false);
+		resultContainer.addView(catView);
 	}
 
 	private void initTranslator(Languages languages) {
@@ -417,10 +422,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private void showText() {
 		progressView.hide();
 
-		/* перед статртом анимации, нужно, чтобы в контэйнере была хоть одна вьюшка (с View не работает),
-		   иначе первая анимация выполняется, замирает и как будто никогда не заканчивается */
-		resultContainer.addView(new TextView(ac));
-
 		new SimpleAlphaAnimation(resultContainer).start(new SimpleAlphaAnimation.OnActionListener() {
 			public void onAnimHalfway(View... views) {
 				resultContainer.removeAllViews();
@@ -428,16 +429,13 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 						.inflate(R.layout.text_view_result_main, resultContainer, false);
 				textView.setText(resultPhrase);
 				resultContainer.addView(textView);
+				resultContainer.addView(yandexView);
 			}
 		});
 	}
 	private void showFullText(final Main main) {
 		progressView.hide();
 		addToHistory();
-
-		/* перед статртом анимации, нужно, чтобы в контэйнере была хоть одна вьюшка (с View не работает),
-		   иначе первая анимация выполняется, замирает и как будто никогда не заканчивается */
-		resultContainer.addView(new TextView(ac));
 
 		new SimpleAlphaAnimation(resultContainer).start(new SimpleAlphaAnimation.OnActionListener() {
 			public void onAnimHalfway(View... views) {
@@ -538,6 +536,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private void clearResult() {
 		resultPhrase = null;
 		resultContainer.removeAllViews();
+		resultContainer.addView(catView);
 	}
 
 	private void checkIfFavorite() {
