@@ -374,9 +374,11 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		}).execute();
 	}
 	private void translate(final String value) {
+		viewPager.setCurrentItem(TRANSLATE_TAB_NUM);
+		progressView.show();
+
 		queryPhrase = value;
 		resultPhrase = null;
-		progressView.show();
 
 		new AsyncCall(new AsyncCall.Callback() {
 			private Response response;
@@ -586,6 +588,5 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		inputAdapter.add(node);
 
 		translate(node.title);
-		viewPager.setCurrentItem(TRANSLATE_TAB_NUM);
 	}
 }
