@@ -283,6 +283,11 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		currentSecondLangCode = code;
 
 		updateLangButtons();
+
+		if (resultPhrase != null) {
+			inputAdapter.setCurrentText(resultPhrase);
+			translate(resultPhrase);
+		}
 		return true;
 	}
 
@@ -369,6 +374,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		}).execute();
 	}
 	private void translate(final String value) {
+		queryPhrase = value;
 		resultPhrase = null;
 		progressView.show();
 
@@ -577,7 +583,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		currentSecondLangCode = dir[1];
 		updateLangButtons();
 
-		queryPhrase = node.title;
 		inputAdapter.add(node);
 
 		translate(node.title);

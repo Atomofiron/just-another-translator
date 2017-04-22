@@ -23,6 +23,7 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 	private OnInputListener onInputListener = null;
 	private int currentPosition = -1;
 	private Base base;
+	private EditText currentView;
 
 	public InputAdapter(RecyclerView recyclerView, Base base, final int screenWidth) {
 		this.recyclerView = recyclerView;
@@ -60,13 +61,12 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 				alreadySlided = true;
 				currentPosition = offset < (screenWidth / 2) ? 0 : 1;
 
-				if (onInputListener != null)
-					onInputListener.onSlide(((EditText)recyclerView
-							.getChildAt(currentPosition)).getText().toString());
+				currentView = (EditText) recyclerView.getChildAt(currentPosition);
 
-				recyclerView.smoothScrollToPosition(
-						recyclerView.getChildAdapterPosition(
-								recyclerView.getChildAt(currentPosition)));
+				if (onInputListener != null)
+					onInputListener.onSlide(currentView.getText().toString());
+
+				recyclerView.smoothScrollToPosition(recyclerView.getChildAdapterPosition(currentView));
 			}
 		});
 	}
@@ -115,6 +115,10 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 
 		notifyDataSetChanged();
 		recyclerView.scrollToPosition(list.size() - 1);
+	}
+
+	public void setCurrentText(String text) {
+		currentView.setText(text);
 	}
 
 
