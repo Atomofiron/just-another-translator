@@ -73,8 +73,7 @@ public class ListAdapter extends BaseAdapter implements View.OnClickListener {
 			holder = new ViewHolder(convertView);
 			convertView.setTag(holder);
 
-			if (type.equals(Node.typeFavorite))
-				holder.icon.setOnClickListener(this);
+			holder.icon.setOnClickListener(this);
 		} else
 			holder = (ViewHolder) convertView.getTag();
 
@@ -83,7 +82,7 @@ public class ListAdapter extends BaseAdapter implements View.OnClickListener {
 		holder.position = position;
 		holder.node = node;
 		holder.icon.setImageDrawable(co.getResources().getDrawable(
-				node.isHistory ? R.drawable.ic_time : R.drawable.ic_bookmark_selector));
+				node.isHistory ? R.drawable.ic_trashbox : R.drawable.ic_bookmark_selector));
 		holder.icon.setActivated(true);
 		holder.title.setText(node.title);
 		holder.subtitle.setText(node.subtitle);
@@ -94,7 +93,12 @@ public class ListAdapter extends BaseAdapter implements View.OnClickListener {
 	@Override
 	public void onClick(View v) {
 		Node node = ((ViewHolder)((View)v.getParent()).getTag()).node;
-		if (v.isActivated()) {
+
+		if (type.equals(Node.typeHistory)) {
+			base.remove(node);
+			nodes.remove(node);
+			notifyDataSetChanged();
+		} else if (v.isActivated()) {
 			base.remove(node);
 			v.setActivated(false);
 		} else {
