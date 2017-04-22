@@ -27,6 +27,8 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import retrofit2.Response;
 import ru.atomofiron.translator.Adapters.ListAdapter;
@@ -358,7 +360,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	private void translate(final String value) {
-		viewPager.setCurrentItem(TRANSLATE_TAB_NUM);
 		progressView.show();
 
 		inputPhrase = value;
@@ -595,6 +596,8 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 		translatedPhrase = node.getTranslation();
 		printTranslation();
-		inputAdapter.setCurrentText(translatedPhrase);
+
+		viewPager.setCurrentItem(TRANSLATE_TAB_NUM);
+		inputAdapter.add(node);
 	}
 }
