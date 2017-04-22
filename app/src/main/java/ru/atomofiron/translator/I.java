@@ -36,6 +36,12 @@ public class I {
 		Toast.makeText(co, co.getString(stringId), Toast.LENGTH_LONG).show();
 	}
 
+	public static void sleep(long ms) {
+		try {
+			Thread.sleep(ms);
+		} catch (Exception ignored) {}
+	}
+
 	public static SharedPreferences SP(Context co) {
 		return PreferenceManager.getDefaultSharedPreferences(co);
 	}

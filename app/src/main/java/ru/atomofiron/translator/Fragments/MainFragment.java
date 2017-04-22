@@ -27,8 +27,6 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import retrofit2.Call;
-import retrofit2.Callback;
 import retrofit2.Response;
 import ru.atomofiron.translator.Adapters.ListAdapter;
 import ru.atomofiron.translator.Adapters.ViewPagerAdapter;
@@ -37,7 +35,7 @@ import ru.atomofiron.translator.CustomViews.ProgressView;
 import ru.atomofiron.translator.I;
 import ru.atomofiron.translator.Adapters.InputAdapter;
 import ru.atomofiron.translator.R;
-import ru.atomofiron.translator.Utils.AsyncJob;
+import ru.atomofiron.translator.Utils.AsyncCall;
 import ru.atomofiron.translator.Utils.Base;
 import ru.atomofiron.translator.Utils.Languages;
 import ru.atomofiron.translator.Utils.Node;
@@ -92,23 +90,22 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		sp = I.SP(ac);
 		base = new Base(ac);
 
-		new AsyncJob(new AsyncJob.Job() {
-			Languages languages;
-			public void onAsyncJobStart() {
-				boolean successful = false;
-				while (!successful)
-					try {
-						Response response = App.getApi().getLangs(I.API_KEY, I.getUICode(ac)).execute();
-						successful = response.isSuccessful();
+		new AsyncCall(new AsyncCall.Callback() {
+			private Response response;
 
-						if (successful)
-							languages = new Languages(((LangsResponse)response.body()).getLangs());
-						else
-							Thread.sleep(3000);
-					} catch (Exception ignored) {}
+			/* нельзя вызывать (execute()) один и тот же объект запроса апи,
+			   поэтому таймер в AsynkCall, а создание очередного запроса здесь */
+			public boolean onBackground() {
+				try {
+					response = App.getApi().getLangs(I.API_KEY, I.getUICode(ac)).execute();
+				} catch (Exception ignored) {
+					return false;
+				}
+				return true;
 			}
-			public void onJobEnd() {
-				initTranslator(this.languages);
+			public void onDone() {
+				initTranslator(new Languages(((LangsResponse) response.body()).getLangs()));
+				progressView.hide();
 			}
 		}).execute();
 
@@ -202,7 +199,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 		init(mainView);
 		updateLangButtons();
-		progressView.hide();
 	}
 
 	@Override
@@ -326,102 +322,101 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private void updateLangsAndTranslate(final String value) {
 		progressView.show();
 
-		App.getApi().detect(I.API_KEY, value).enqueue(new Callback<DetectResponse>() {
-			@Override
-			public void onResponse(Call<DetectResponse> call, Response<DetectResponse> response) {
-				DetectResponse detectResponse = response.body();
-				if (detectResponse != null && detectResponse.getCode() == 200) {
-					if (currentSecondLangCode.equals(detectResponse.getLang()))
-						swapLangs();
+		new AsyncCall(new AsyncCall.Callback() {
+			private Response response;
 
-					translate(value);
-				} else {
-					I.Loge("DetectResponse code: "+response.code());
-					I.Toast(ac, R.string.error);
+			public boolean onBackground() {
+				try {
+					response = App.getApi().detect(I.API_KEY, value).execute();
+				} catch (Exception ignored) {
+					return false;
 				}
+				return true;
+			}
 
-				progressView.hide();
+			public void onDone() {
+				if (currentSecondLangCode.equals(((DetectResponse) response.body()).getLang()))
+					swapLangs();
+
+				translate(value);
 			}
-			@Override
-			public void onFailure(Call<DetectResponse> call, Throwable t) {
-				I.Loge("DetectResponse: " + t);
-				progressView.hide();
-			}
-		});
+		}).execute();
 	}
 
-	private void translateWord(String value) {
-		progressView.show();
+	private void translateWord(final String value) {
+		final String langs = getCurrentLangs();
 
-		String langs = getCurrentLangs();
-		App.getApi().translate2(I.DIC_URL, I.API_KEY_DIC, langs, value, I.getUICode(ac)).enqueue(new Callback<Main>() {
-			@Override
-			public void onResponse(Call<Main> call, Response<Main> response) {
-				if (response.isSuccessful())
-					showFullText(response.body());
-				else
-					I.Toast(ac, R.string.error);
+		new AsyncCall(new AsyncCall.Callback() {
+			private Response response;
+
+			public boolean onBackground() {
+				try {
+					response = App.getApi().translate2(I.DIC_URL, I.API_KEY_DIC, langs, value, I.getUICode(ac)).execute();
+				} catch (Exception ignored) {
+					return false;
+				}
+				return true;
 			}
-			@Override
-			public void onFailure(Call<Main> call, Throwable t) {
-				I.Loge("onFailure: " + t);
-				I.Toast(ac, R.string.error);
+
+			public void onDone() {
+				showFullText((Main) response.body());
 			}
-		});
+		}).execute();
 	}
 	private void translate(final String value) {
 		resultPhrase = null;
 		progressView.show();
 
-		App.getApi().translate(I.API_KEY, value, currentSecondLangCode, "plain").enqueue(new Callback<TranslateResponse>() {
-			@Override
-			public void onResponse(Call<TranslateResponse> call, Response<TranslateResponse> response) {
-				TranslateResponse translateResponse = response.body();
-				if (translateResponse != null && translateResponse.getCode() == 200) {
-					String[] langs = translateResponse.getLang().split("-");
-					if (!currentFirstLangCode.equals(langs[0])) {
-						if (currentFirstLangCode.equals(langs[1]) && currentSecondLangCode.equals(langs[0]))
-							swapLangs();
-						else {
-							currentFirstLangCode = langs[0];
-							currentSecondLangCode = langs[1];
+		new AsyncCall(new AsyncCall.Callback() {
+			private Response response;
 
-							updateLangButtons();
-						}
+			public boolean onBackground() {
+				try {
+					response = App.getApi().translate(I.API_KEY, value, currentSecondLangCode, "plain").execute();
+				} catch (Exception ignored) {
+					return false;
+				}
+				return true;
+			}
+
+			public void onDone() {
+				TranslateResponse translateResponse = (TranslateResponse) response.body();
+				String[] langs = translateResponse.getLang().split("-");
+
+				if (!currentFirstLangCode.equals(langs[0])) {
+					if (currentFirstLangCode.equals(langs[1]) && currentSecondLangCode.equals(langs[0]))
+						swapLangs();
+					else {
+						currentFirstLangCode = langs[0];
+						currentSecondLangCode = langs[1];
+
+						updateLangButtons();
 					}
-
-					StringBuilder textBuilder = new StringBuilder("");
-					for (String text : translateResponse.getText()) {
-						if (textBuilder.length() > 0)
-							textBuilder.append("\n");
-
-						textBuilder.append(Html.fromHtml(text));
-					}
-
-					resultPhrase = textBuilder.toString();
-					addToHistory();
-					checkIfFavorite();
-
-					if (value.contains(" "))
-						showText();
-					else
-						translateWord(value);
-				} else {
-					I.Loge("TranslateResponse code: "+response.code());
-					I.Toast(ac, R.string.error);
 				}
 
-				progressView.hide();
+				StringBuilder textBuilder = new StringBuilder("");
+				for (String text : translateResponse.getText()) {
+					if (textBuilder.length() > 0)
+						textBuilder.append("\n");
+
+					textBuilder.append(text);
+				}
+
+				resultPhrase = textBuilder.toString();
+				addToHistory();
+				checkIfFavorite();
+
+				if (value.contains(" "))
+					showText();
+				else
+					translateWord(value);
 			}
-			@Override
-			public void onFailure(Call<TranslateResponse> call, Throwable t) {
-				I.Loge("TranslateResponse: " + t);
-				progressView.hide();
-			}
-		});
+		}).execute();
 	}
 
 	private void showText() {
+		progressView.hide();
+
 		/* перед статртом анимации, нужно, чтобы в контэйнере была хоть одна вьюшка (с View не работает),
 		   иначе первая анимация выполняется, замирает и как будто никогда не заканчивается */
 		resultContainer.addView(new TextView(ac));
@@ -437,7 +432,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		});
 	}
 	private void showFullText(final Main main) {
-		I.Log("showFullText() "+(resultContainer == null));
+		progressView.hide();
 		addToHistory();
 
 		/* перед статртом анимации, нужно, чтобы в контэйнере была хоть одна вьюшка (с View не работает),
@@ -452,7 +447,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	private void parseTranslate(Main main) {
-		I.Log("showFullText(): SimpleAlphaAnimation");
 		resultContainer.removeAllViews();
 
 		LayoutInflater inflater = LayoutInflater.from(ac);
