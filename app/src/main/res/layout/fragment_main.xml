@@ -74,6 +74,7 @@
         android:id="@+id/tab_layout"
         android:layout_alignParentBottom="true"
         app:tabIndicatorHeight="@dimen/small_space"
+        android:background="@color/colorCrystalLiteBlue"
         />
 
     <ru.atomofiron.translator.CustomViews.ProgressView
