@@ -28,8 +28,6 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-
-        I.initColors(this);
     }
 
     @Override
