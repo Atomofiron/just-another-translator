@@ -80,7 +80,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private ListAdapter historyAdapter;
 	private ListAdapter favoriteAdapter;
 
-	private boolean needAddToHistory;
+	private boolean needAddToHistoryAfterTranslate;
 
     public MainFragment() {}
 
@@ -181,6 +181,11 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		viewPager = (ViewPager) view.findViewById(R.id.view_pager);
 		viewPager.setAdapter(pagerAdapter);
 		viewPager.setCurrentItem(TRANSLATE_TAB_NUM);
+		viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+			public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+			public void onPageScrollStateChanged(int state) {}
+			public void onPageSelected(int position) { addToHistory(); }
+		});
 		((TabLayout) view.findViewById(R.id.tab_layout)).setupWithViewPager(viewPager);
 
 		resultContainer = (LinearLayout) scrollView.findViewById(R.id.result_container);
@@ -197,6 +202,13 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 		init(mainView);
 		updateLangButtons();
+	}
+
+	@Override
+	public void onStop() {
+		super.onStop();
+
+		addToHistory();
 	}
 
 	@Override
@@ -268,9 +280,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	private void addToHistory() {
-		if (!needAddToHistory)
-			return;
-
 		Node node = getCurrentNode(Node.TYPE.HISTORY);
 		if (node == null)
 			return;
@@ -390,7 +399,8 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 				}
 
 				translationPhrase = textBuilder.toString();
-				addToHistory();
+				if (needAddToHistoryAfterTranslate)
+					addToHistory();
 				checkIfFavorite();
 
 				translateWord(value);
@@ -554,15 +564,17 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		}
 	}
 
-
 	@Override
-	public void onInput(String text, boolean fromHistory) {
+	public void onInput(String text, boolean needAddToHistory) {
+		if (text.equals(inputPhrase))
+			return;
+
 		favoriteButton.setActivated(false);
 		inputPhrase = null;
 
 		if (!text.isEmpty()) {
 			inputPhrase = text;
-			needAddToHistory = !fromHistory;
+			this.needAddToHistoryAfterTranslate = needAddToHistory;
 			updateLangsAndTranslate(text);
 		} else
 			clearResult();

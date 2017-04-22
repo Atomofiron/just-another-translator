@@ -1,7 +1,9 @@
 package ru.atomofiron.translator.Adapters;
 
 import android.animation.ValueAnimator;
+import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -15,7 +17,8 @@ import ru.atomofiron.translator.R;
 import ru.atomofiron.translator.Utils.Base;
 import ru.atomofiron.translator.Utils.Node;
 
-public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> implements ValueAnimator.AnimatorUpdateListener, TextView.OnEditorActionListener {
+public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> implements ValueAnimator.AnimatorUpdateListener, TextView.OnEditorActionListener, ExEditText.OnTextChangedListener {
+	private static final int DELAY_AFTER_TYPING_MS = 1000;
 
 	private RecyclerView recyclerView;
 	private int screenWidth;
@@ -23,6 +26,7 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 	private OnInputListener onInputListener = null;
 	private Base base;
 	private EditText currentView;
+	private Handler handler = new Handler();
 
 	public InputAdapter(RecyclerView recyclerView, Base base, final int screenWidth) {
 		this.recyclerView = recyclerView;
@@ -44,6 +48,7 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 		ExEditText v = (ExEditText) LayoutInflater.from(parent.getContext())
 				.inflate(R.layout.edit_text_input, parent, false);
 		v.setOnEditorActionListener(this);
+		v.setOnTextChangedListener(this);
 
 		return new ViewHolder(v);
 	}
@@ -94,9 +99,22 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 	@Override
 	public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 		if (actionId == KeyEvent.KEYCODE_ENDCALL && onInputListener != null)
-			onInputListener.onInput(v.getText().toString(), false);
+			onInputListener.onInput(v.getText().toString(), true);
 
 		return false;
+	}
+
+	@Override
+	public void onTextChanged(final Editable s) {
+		if (onInputListener == null)
+			return;
+
+		handler.removeMessages(0);
+		handler.postDelayed(new Runnable() {
+			public void run() {
+				onInputListener.onInput(s.toString(), false);
+			}
+		}, DELAY_AFTER_TYPING_MS);
 	}
 
 	static class ViewHolder extends RecyclerView.ViewHolder {
@@ -148,6 +166,6 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 	}
 
 	public interface OnInputListener {
-		void onInput(String text, boolean fromHistory);
+		void onInput(String text, boolean needAddToHistory);
 	}
 }
