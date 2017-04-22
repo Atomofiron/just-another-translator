@@ -7,43 +7,49 @@ import android.database.sqlite.SQLiteDatabase;
 
 import java.util.ArrayList;
 
-import ru.atomofiron.translator.I;
-
 public class Base {
 
-	private static final String colTitle = "title";
-	private static final String colSubTitle = "subtitle";
-	private static final String colDir = "dir";
-	private static final String colType = "type";
-	private static final String tableName = "tableName";
+	private static final String CAL_PHRASE = "phrase";
+	private static final String COL_TRANSLATION = "translation";
+	private static final String COL_DIR = "direction";
+	private static final String COL_TYPE = "type";
+	private static final String TABLE_TRANSLATIONS = "translations";
 
 	private Context co;
 	private SQLiteDatabase db;
 
 	public Base(Context co) {
 		this.co = co;
-		String path = getFilePath();
-		db = SQLiteDatabase.openOrCreateDatabase(path, null);
-		db.execSQL("create table if not exists " + tableName + " ( _id integer primary key autoincrement, " +
-				colTitle + " text, " + colSubTitle + " text, " + colDir + " text, " + colType + " text " + ");");
+
+		init();
+	}
+
+	private void init() {
+		db = SQLiteDatabase.openOrCreateDatabase(getFilePath(), null);
+		db.execSQL("create table if not exists " + TABLE_TRANSLATIONS + " ( _id integer primary key autoincrement, " +
+				CAL_PHRASE + " text, " + COL_TRANSLATION + " text, " + COL_DIR + " text, " + COL_TYPE + " text " + ");");
+
 	}
 
 	public long put(Node node) {
 		if (contains(node))
-			return 0;
+			remove(node);
 
 		ContentValues cv = new ContentValues();
-		cv.put(colTitle, node.title);
-		cv.put(colSubTitle, node.subtitle);
-		cv.put(colDir, node.dir);
-		cv.put(colType, node.getType());
+		cv.put(CAL_PHRASE, node.getPhrase());
+		cv.put(COL_TRANSLATION, node.getTranslation());
+		cv.put(COL_DIR, node.getDirection());
+		cv.put(COL_TYPE, node.getTypeString());
 
-		return db.insert(tableName, null, cv);
+		return db.insert(TABLE_TRANSLATIONS, null, cv);
 	}
 	public boolean contains(Node node) {
-		Cursor cursor = db.rawQuery("select * from " + tableName +
-						" where " + colTitle+"=? and "+colSubTitle+"=? and "+colDir+"=? and "+colType+"=? ",
-				new String[] { node.title, node.subtitle, node.dir, node.getType() });
+		if (!db.isOpen())
+			init();
+
+		Cursor cursor = db.rawQuery("select * from " + TABLE_TRANSLATIONS +
+						" where " + CAL_PHRASE +"=? and "+ COL_TRANSLATION +"=? and "+ COL_DIR +"=? and "+ COL_TYPE +"=? ",
+				new String[] { node.getPhrase(), node.getTranslation(), node.getDirection(), node.getTypeString() });
 
 		boolean contains = cursor.getCount() > 0;
 		cursor.close();
@@ -51,18 +57,18 @@ public class Base {
 		return contains;
 	}
 
-	public ArrayList<Node> get(String type) {
+	public ArrayList<Node> get(Node.TYPE type) {
 		ArrayList<Node> nodes = new ArrayList<>();
 
 		try {
 			Cursor cursor;
-			cursor = db.rawQuery("select * from " + tableName + " where " + colType + "=?;", new String[] { type });
+			cursor = db.rawQuery("select * from " + TABLE_TRANSLATIONS + " where " + COL_TYPE + "=?;", new String[] { type.toString() });
 
 			 if (cursor.moveToFirst())
 			 	do {
-					String title = cursor.getString(cursor.getColumnIndex(colTitle));
-					String subtitle = cursor.getString(cursor.getColumnIndex(colSubTitle));
-					String dir = cursor.getString(cursor.getColumnIndex(colDir));
+					String title = cursor.getString(cursor.getColumnIndex(CAL_PHRASE));
+					String subtitle = cursor.getString(cursor.getColumnIndex(COL_TRANSLATION));
+					String dir = cursor.getString(cursor.getColumnIndex(COL_DIR));
 					nodes.add(new Node(title, subtitle, dir, type));
 				} while (cursor.moveToNext());
 
@@ -75,8 +81,8 @@ public class Base {
 	}
 
 	public int remove(Node node) {
-		return db.delete(tableName, colTitle+"=? and "+colSubTitle+"=? and "+colDir+"=? and "+colType+"=? ",
-				new String[] { node.title, node.subtitle, node.dir, node.getType() });
+		return db.delete(TABLE_TRANSLATIONS, CAL_PHRASE +"=? and "+ COL_TRANSLATION +"=? and "+ COL_DIR +"=? and "+ COL_TYPE +"=? ",
+				new String[] { node.getPhrase(), node.getTranslation(), node.getDirection(), node.getTypeString() });
 	}
 
 	private String getFilePath() {

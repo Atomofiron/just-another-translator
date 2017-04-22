@@ -13,20 +13,20 @@ public class ExEditText extends android.support.v7.widget.AppCompatEditText impl
 
 	public ExEditText(Context context) {
 		super(context);
-		init(context);
+		init();
 	}
 
 	public ExEditText(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		init(context);
+		init();
 	}
 
 	public ExEditText(Context context, AttributeSet attrs, int defStyleAttr) {
 		super(context, attrs, defStyleAttr);
-		init(context);
+		init();
 	}
 
-	private void init(Context context) {
+	private void init() {
 		addTextChangedListener(this);
 	}
 
@@ -40,7 +40,6 @@ public class ExEditText extends android.support.v7.widget.AppCompatEditText impl
 		outAttrs.imeOptions &= ~EditorInfo.IME_FLAG_NO_ENTER_ACTION;
 		return conn;
 	}
-
 
 	@Override
 	public void beforeTextChanged(CharSequence s, int start, int count, int after) {}

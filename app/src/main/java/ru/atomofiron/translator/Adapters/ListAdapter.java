@@ -12,7 +12,6 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import ru.atomofiron.translator.I;
 import ru.atomofiron.translator.R;
 import ru.atomofiron.translator.Utils.Base;
 import ru.atomofiron.translator.Utils.Node;
@@ -23,9 +22,9 @@ public class ListAdapter extends BaseAdapter implements View.OnClickListener {
 	private LayoutInflater inflater;
 	private final ArrayList<Node> nodes = new ArrayList<>();
 	private Base base;
-	private String type;
+	private Node.TYPE type;
 
-	public ListAdapter(Context context, Base base, String type) {
+	public ListAdapter(Context context, Base base, Node.TYPE type) {
 		co = context;
 		this.base = base;
 		this.type = type;
@@ -41,7 +40,7 @@ public class ListAdapter extends BaseAdapter implements View.OnClickListener {
 
 	@Override
 	public Node getItem(int position) {
-		return nodes.get(position);
+		return nodes.get(getCount() - 1 - position);
 	}
 
 	@Override
@@ -60,10 +59,6 @@ public class ListAdapter extends BaseAdapter implements View.OnClickListener {
 		notifyDataSetChanged();
 	}
 
-	public ArrayList<Node> getNodes() {
-		return nodes;
-	}
-
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		ViewHolder holder;
@@ -77,15 +72,14 @@ public class ListAdapter extends BaseAdapter implements View.OnClickListener {
 		} else
 			holder = (ViewHolder) convertView.getTag();
 
-		Node node = nodes.get(position);
+		Node node = nodes.get(getCount() - 1 - position);
 
-		holder.position = position;
 		holder.node = node;
 		holder.icon.setImageDrawable(co.getResources().getDrawable(
-				node.isHistory ? R.drawable.ic_trashbox : R.drawable.ic_bookmark_selector));
+				node.isHistory() ? R.drawable.ic_trashbox : R.drawable.ic_bookmark_selector));
 		holder.icon.setActivated(true);
-		holder.title.setText(node.title);
-		holder.subtitle.setText(node.subtitle);
+		holder.title.setText(node.getPhrase());
+		holder.subtitle.setText(node.getTranslation());
 
 		return convertView;
 	}
@@ -94,7 +88,7 @@ public class ListAdapter extends BaseAdapter implements View.OnClickListener {
 	public void onClick(View v) {
 		Node node = ((ViewHolder)((View)v.getParent()).getTag()).node;
 
-		if (type.equals(Node.typeHistory)) {
+		if (type.equals(Node.TYPE.HISTORY)) {
 			base.remove(node);
 			nodes.remove(node);
 			notifyDataSetChanged();
@@ -107,12 +101,11 @@ public class ListAdapter extends BaseAdapter implements View.OnClickListener {
 		}
 	}
 
-	class ViewHolder {
+	private class ViewHolder {
 		LinearLayout layout;
 		ImageView icon;
 		TextView title;
 		TextView subtitle;
-		int position;
 		Node node;
 
 		ViewHolder(View view) {

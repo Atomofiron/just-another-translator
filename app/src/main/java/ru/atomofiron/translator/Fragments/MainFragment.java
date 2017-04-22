@@ -33,7 +33,7 @@ import ru.atomofiron.translator.Adapters.ListAdapter;
 import ru.atomofiron.translator.Adapters.ViewPagerAdapter;
 import ru.atomofiron.translator.App;
 import ru.atomofiron.translator.CustomViews.ProgressView;
-import ru.atomofiron.translator.I;
+import ru.atomofiron.translator.Utils.I;
 import ru.atomofiron.translator.Adapters.InputAdapter;
 import ru.atomofiron.translator.R;
 import ru.atomofiron.translator.Utils.AsyncCall;
@@ -43,7 +43,7 @@ import ru.atomofiron.translator.Utils.Node;
 import ru.atomofiron.translator.Utils.Retrofit.DetectResponse;
 import ru.atomofiron.translator.Utils.Retrofit.Dictionary.Def;
 import ru.atomofiron.translator.Utils.Retrofit.Dictionary.Ex;
-import ru.atomofiron.translator.Utils.Retrofit.Dictionary.Main;
+import ru.atomofiron.translator.Utils.Retrofit.DictionaryResponse;
 import ru.atomofiron.translator.Utils.Retrofit.Dictionary.Mean;
 import ru.atomofiron.translator.Utils.Retrofit.Dictionary.Syn;
 import ru.atomofiron.translator.Utils.Retrofit.Dictionary.Tr;
@@ -75,8 +75,8 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private Languages languages;
 	private String currentFirstLangCode;
 	private String currentSecondLangCode;
-	private String queryPhrase;
-	private String resultPhrase;
+	private String inputPhrase;
+	private String translationPhrase;
 	private ListAdapter historyAdapter;
 	private ListAdapter favoriteAdapter;
 
@@ -92,12 +92,12 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		sp = I.SP(ac);
 		base = new Base(ac);
 
-		new AsyncCall(new AsyncCall.Callback() {
+		new AsyncCall(new AsyncCall.ProcessListener() {
 			private Response response;
 
 			/* нельзя вызывать (execute()) один и тот же объект запроса апи,
 			   поэтому таймер в AsynkCall, а создание очередного запроса здесь */
-			public boolean onBackground() {
+			public boolean onBackgroundDone() {
 				try {
 					response = App.getApi().getLangs(I.API_KEY, I.getUICode(ac)).execute();
 				} catch (Exception ignored) {
@@ -122,12 +122,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		}
 	}
 
-	@Override
-	public void onDestroy() {
-		super.onDestroy();
-
-		base.close();
-	}
 
 	@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -143,7 +137,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
     private void init(View view) {
 		progressView = (ProgressView) view.findViewById(R.id.progress_view);
-
 		recyclerView = (RecyclerView) view.findViewById(R.id.input_recycler_view);
 
 		recyclerView.setLayoutManager
@@ -169,11 +162,11 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		LayoutInflater inflater = LayoutInflater.from(ac);
 
 		ListView historyListView = new ListView(ac);
-		ScrollView scrollView = (ScrollView) inflater.inflate(R.layout.layout_scroll_result, null, false);
+		ScrollView scrollView = (ScrollView) inflater.inflate(R.layout.scroll_view_result, null, false);
 		ListView favoriteListView = new ListView(ac);
 
-		historyAdapter = new ListAdapter(ac, base, Node.typeHistory);
-		favoriteAdapter = new ListAdapter(ac, base, Node.typeFavorite);
+		historyAdapter = new ListAdapter(ac, base, Node.TYPE.HISTORY);
+		favoriteAdapter = new ListAdapter(ac, base, Node.TYPE.FAVORITE);
 		historyListView.setAdapter(historyAdapter);
 		favoriteListView.setAdapter(favoriteAdapter);
 		historyListView.setOnItemClickListener(this);
@@ -207,36 +200,14 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	@Override
-	public void onClick(View v) {
-		switch (v.getId()) {
-			case R.id.first_language:
-				showSelectingFirstLang();
-				break;
-			case R.id.second_language:
-				showSelectingSecondLang();
-				break;
-			case R.id.swap_langs:
-				if (!swapLangs())
-					I.Toast(ac, R.string.lang_hasnt_translation);
-				break;
-			case R.id.btn_voice:
-				break;
-			case R.id.btn_volume:
-				break;
-			case R.id.btn_bookmark:
-				addToFavorite(v);
-				break;
-		}
+	public void onDestroy() {
+		super.onDestroy();
+
+		base.close();
 	}
 
-	private void updateLangButtons() {
-		new SimpleAlphaAnimation(firstLangButton, secondLangButton).start(new SimpleAlphaAnimation.OnActionListener() {
-			public void onAnimHalfway(View... views) {
-				firstLangButton.setText(languages.getByCode(currentFirstLangCode).name);
-				secondLangButton.setText(languages.getByCode(currentSecondLangCode).name);
-			}
-		});
-	}
+
+
 
 	private void showSelectingFirstLang() {
 		new AlertDialog.Builder(ac)
@@ -244,7 +215,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 				.setSingleChoiceItems(languages.getStringArray(), languages.indexByCode(currentFirstLangCode), new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
 						Languages.Language lang = languages.get(which);
-						currentFirstLangCode = lang.code;
+						currentFirstLangCode = lang.getCode();
 
 						if (!lang.containsDir(currentSecondLangCode))
 							currentSecondLangCode = lang.getDirsNames()[0];
@@ -266,7 +237,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int which) {
 								currentSecondLangCode = languages.getByCode(currentFirstLangCode).getDirByPosition(which);
-								secondLangButton.setText(languages.getByCode(currentSecondLangCode).name);
+								secondLangButton.setText(languages.getByCode(currentSecondLangCode).getName());
 
 								dialog.dismiss();
 							}
@@ -274,36 +245,42 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 				.setPositiveButton(R.string.cancel, null)
 				.create().show();
 	}
-	private boolean swapLangs() {
-		if (!languages.getByCode(currentSecondLangCode).containsDir(currentFirstLangCode))
-			return false;
-
+	private void swapLangs() {
 		String code = currentFirstLangCode;
 		currentFirstLangCode = currentSecondLangCode;
 		currentSecondLangCode = code;
 
 		updateLangButtons();
 
-		if (resultPhrase != null) {
-			inputAdapter.setCurrentText(resultPhrase);
-			translate(resultPhrase);
+		if (translationPhrase != null) {
+			inputAdapter.setCurrentText(translationPhrase);
+			translate(translationPhrase);
 		}
-		return true;
+	}
+
+	private void updateLangButtons() {
+		new SimpleAlphaAnimation(firstLangButton, secondLangButton).start(new SimpleAlphaAnimation.CallbackAnimHalfway() {
+			public void onAnimHalfway(View... views) {
+				firstLangButton.setText(languages.getByCode(currentFirstLangCode).getName());
+				secondLangButton.setText(languages.getByCode(currentSecondLangCode).getName());
+			}
+		});
 	}
 
 	private void addToHistory() {
 		if (!needAddToHistory)
 			return;
 
-		Node node = getCurrentNode(Node.typeHistory);
+		Node node = getCurrentNode(Node.TYPE.HISTORY);
 		if (node == null)
 			return;
 
 		inputAdapter.add(node);
 		historyAdapter.update();
 	}
+
 	private void addToFavorite(View v) {
-		Node node = getCurrentNode(Node.typeFavorite);
+		Node node = getCurrentNode(Node.TYPE.FAVORITE);
 		if (node == null)
 			return;
 
@@ -318,24 +295,41 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		favoriteAdapter.update();
 	}
 
-	private Node getCurrentNode(String type) {
-		if (queryPhrase == null || resultPhrase == null)
+	private Node getCurrentNode(Node.TYPE type) {
+		if (inputPhrase == null || translationPhrase == null)
 			return null;
 
-		return new Node(queryPhrase, resultPhrase, getCurrentLangs(), type);
+		return new Node(inputPhrase, translationPhrase, getCurrentLangs(), type);
 	}
 
 	private String getCurrentLangs() {
 		return currentFirstLangCode + "-" + currentSecondLangCode;
 	}
 
+	private void saveCurrentLangs() {
+		SharedPreferences.Editor ed = sp.edit();
+		ed.putString(I.PREF_FIRST_LANG_CODE, currentFirstLangCode);
+		ed.putString(I.PREF_SECOND_LANG_CODE, currentSecondLangCode);
+		ed.apply();
+	}
+
+	private void clearResult() {
+		translationPhrase = null;
+		resultContainer.removeAllViews();
+		resultContainer.addView(catView);
+	}
+
+	private void checkIfFavorite() {
+		favoriteButton.setActivated(base.contains(getCurrentNode(Node.TYPE.FAVORITE)));
+	}
+
 	private void updateLangsAndTranslate(final String value) {
 		progressView.show();
 
-		new AsyncCall(new AsyncCall.Callback() {
+		new AsyncCall(new AsyncCall.ProcessListener() {
 			private Response response;
 
-			public boolean onBackground() {
+			public boolean onBackgroundDone() {
 				try {
 					response = App.getApi().detect(I.API_KEY, value).execute();
 				} catch (Exception ignored) {
@@ -353,37 +347,17 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		}).execute();
 	}
 
-	private void translateWord(final String value) {
-		final String langs = getCurrentLangs();
-
-		new AsyncCall(new AsyncCall.Callback() {
-			private Response response;
-
-			public boolean onBackground() {
-				try {
-					response = App.getApi().translate2(I.DIC_URL, I.API_KEY_DIC, langs, value, I.getUICode(ac)).execute();
-				} catch (Exception ignored) {
-					return false;
-				}
-				return true;
-			}
-
-			public void onDone() {
-				showFullText((Main) response.body());
-			}
-		}).execute();
-	}
 	private void translate(final String value) {
 		viewPager.setCurrentItem(TRANSLATE_TAB_NUM);
 		progressView.show();
 
-		queryPhrase = value;
-		resultPhrase = null;
+		inputPhrase = value;
+		translationPhrase = null;
 
-		new AsyncCall(new AsyncCall.Callback() {
+		new AsyncCall(new AsyncCall.ProcessListener() {
 			private Response response;
 
-			public boolean onBackground() {
+			public boolean onBackgroundDone() {
 				try {
 					response = App.getApi().translate(I.API_KEY, value, currentSecondLangCode, "plain").execute();
 				} catch (Exception ignored) {
@@ -415,54 +389,76 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 					textBuilder.append(text);
 				}
 
-				resultPhrase = textBuilder.toString();
+				translationPhrase = textBuilder.toString();
 				addToHistory();
 				checkIfFavorite();
 
-				if (value.contains(" "))
-					showText();
-				else
-					translateWord(value);
+				translateWord(value);
 			}
 		}).execute();
 	}
 
-	private void showText() {
-		progressView.hide();
+	private void translateWord(final String value) {
+		final String langs = getCurrentLangs();
 
-		new SimpleAlphaAnimation(resultContainer).start(new SimpleAlphaAnimation.OnActionListener() {
+		new AsyncCall(new AsyncCall.ProcessListener() {
+			private Response response;
+
+			public boolean onBackgroundDone() {
+				try {
+					response = App.getApi().translateWord(I.DIC_URL, I.API_KEY_DIC, langs, value, I.getUICode(ac)).execute();
+				} catch (Exception ignored) {
+					I.Log("454: "+ignored.toString());
+					return false;
+				}
+				return true;
+			}
+
+			public void onDone() {
+				I.Log("isS: "+response.isSuccessful());
+				if (response.isSuccessful())
+					showDictionary((DictionaryResponse) response.body());
+				else
+					showTranslation();
+			}
+		}).execute();
+	}
+
+	private void showTranslation() {
+		new SimpleAlphaAnimation(resultContainer).start(new SimpleAlphaAnimation.CallbackAnimHalfway() {
 			public void onAnimHalfway(View... views) {
+				progressView.hide();
+
 				resultContainer.removeAllViews();
 				TextView textView = (TextView) LayoutInflater.from(ac)
 						.inflate(R.layout.text_view_result_main, resultContainer, false);
-				textView.setText(resultPhrase);
+				textView.setText(translationPhrase);
 				resultContainer.addView(textView);
 				resultContainer.addView(yandexView);
 			}
 		});
 	}
-	private void showFullText(final Main main) {
-		progressView.hide();
-		addToHistory();
-
-		new SimpleAlphaAnimation(resultContainer).start(new SimpleAlphaAnimation.OnActionListener() {
+	private void showDictionary(final DictionaryResponse dictionaryResponse) {
+		new SimpleAlphaAnimation(resultContainer).start(new SimpleAlphaAnimation.CallbackAnimHalfway() {
 			public void onAnimHalfway(View... views) {
-				parseTranslate(main);
+				progressView.hide();
+
+				parseTranslate(dictionaryResponse);
 			}
 		});
 	}
 
-	private void parseTranslate(Main main) {
+	private void parseTranslate(DictionaryResponse dictionaryResponse) {
 		resultContainer.removeAllViews();
 
 		LayoutInflater inflater = LayoutInflater.from(ac);
 
 		String str;
 		TextView textView = (TextView) inflater.inflate(R.layout.text_view_result_main, resultContainer, false);
-		textView.setText(resultPhrase);
+		textView.setText(translationPhrase);
 		resultContainer.addView(textView);
 
-		for (Def def : main.getDef()) {
+		for (Def def : dictionaryResponse.getDef()) {
 			CardView cardView = (CardView) inflater.inflate(R.layout.card_view_result, resultContainer, false);
 			LinearLayout layout = new LinearLayout(ac);
 			layout.setOrientation(LinearLayout.VERTICAL);
@@ -534,43 +530,39 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		resultContainer.addView(yandexView);
 	}
 
-	private void saveCurrentLangs() {
-		SharedPreferences.Editor ed = sp.edit();
-		ed.putString(I.PREF_FIRST_LANG_CODE, currentFirstLangCode);
-		ed.putString(I.PREF_SECOND_LANG_CODE, currentSecondLangCode);
-		ed.apply();
-	}
 
-	private void clearResult() {
-		resultPhrase = null;
-		resultContainer.removeAllViews();
-		resultContainer.addView(catView);
-	}
-
-	private void checkIfFavorite() {
-		favoriteButton.setActivated(base.contains(getCurrentNode(Node.typeFavorite)));
-	}
-
-	public void onInput(String text) {
-		favoriteButton.setActivated(false);
-		queryPhrase = null;
-
-		if (text.isEmpty())
-			return;
-
-		queryPhrase = text;
-		needAddToHistory = true;
-		updateLangsAndTranslate(text);
-	}
 
 	@Override
-	public void onSlide(String text) {
+	public void onClick(View v) {
+		switch (v.getId()) {
+			case R.id.first_language:
+				showSelectingFirstLang();
+				break;
+			case R.id.second_language:
+				showSelectingSecondLang();
+				break;
+			case R.id.swap_langs:
+				swapLangs();
+				break;
+			case R.id.btn_voice:
+				break;
+			case R.id.btn_volume:
+				break;
+			case R.id.btn_bookmark:
+				addToFavorite(v);
+				break;
+		}
+	}
+
+
+	@Override
+	public void onInput(String text, boolean fromHistory) {
 		favoriteButton.setActivated(false);
-		queryPhrase = null;
+		inputPhrase = null;
 
 		if (!text.isEmpty()) {
-			queryPhrase = text;
-			needAddToHistory = false;
+			inputPhrase = text;
+			needAddToHistory = !fromHistory;
 			updateLangsAndTranslate(text);
 		} else
 			clearResult();
@@ -579,7 +571,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 		Node node = ((ListAdapter)parent.getAdapter()).getItem(position);
-		String[] dir = node.dir.split("-");
+		String[] dir = node.getDirection().split("-");
 
 		currentFirstLangCode = dir[0];
 		currentSecondLangCode = dir[1];
@@ -587,6 +579,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 		inputAdapter.add(node);
 
-		translate(node.title);
+		translate(node.getPhrase());
+		translationPhrase = node.getTranslation();
 	}
 }

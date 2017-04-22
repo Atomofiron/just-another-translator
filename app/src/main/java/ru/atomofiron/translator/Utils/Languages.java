@@ -3,44 +3,11 @@ package ru.atomofiron.translator.Utils;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
-import ru.atomofiron.translator.I;
-
 public class Languages {
-
 	private final ArrayList<Language> languages = new ArrayList<>();
-
-	public Languages(String jsonString) {
-
-		try {
-			JSONObject mainObject = new JSONObject(jsonString);
-			JSONArray dirsArray = mainObject.getJSONArray("dirs");
-			JSONObject langsObject = mainObject.getJSONObject("langs");
-
-			Language lang;
-			for (int i = 0; i < dirsArray.length(); i++) {
-				String[] codes = dirsArray.getString(i).split("-");
-
-				lang = getByCode(codes[0]);
-				if (lang == null) {
-					lang = new Language(codes[0], langsObject.getString(codes[0]));
-					languages.add(lang);
-				}
-				lang.dirs.add(codes[1]);
-			}
-
-			checkIfNull();
-		} catch (JSONException e) {
-			I.Loge(e.toString());
-		}
-	}
 
 	public Languages(JsonObject langsObj) {
 		ArrayList<String> codes = new ArrayList<>();
@@ -52,14 +19,6 @@ public class Languages {
 
 	public int size() {
 		return languages.size();
-	}
-
-	public String[] getStringArray() {
-		String[] arr = new String[size()];
-		for (int i = 0; i < arr.length; i++)
-			arr[i] = languages.get(i).name;
-
-		return arr;
 	}
 
 	public Language get(int i) {
@@ -82,30 +41,37 @@ public class Languages {
 		return -1;
 	}
 
+	public String[] getStringArray() {
+		String[] arr = new String[size()];
+		for (int i = 0; i < arr.length; i++)
+			arr[i] = languages.get(i).name;
+
+		return arr;
+	}
+
 	public boolean contains(String code) {
 		return indexByCode(code) != -1;
 	}
 
-	private void checkIfNull() {
-		// todo check this and remove
-		for (Language l : languages)
-			if (l.dirs.isEmpty())
-				I.Log("! ! ! WTF: "+l.name+" - NO DIRS");
-	}
-
 	public class Language {
-		public String code;
-		public String name;
-		private ArrayList<String> dirs = new ArrayList<>();
+		String code;
+		String name;
+		private final ArrayList<String> dirs = new ArrayList<>();
 
-		Language(String code, String name) {
-			this.code = code;
-			this.name = name;
-		}
 		Language(String code, String name, ArrayList<String> dirs) {
-			this.code = code;
-			this.name = name;
-			this.dirs = dirs;
+			this.code = code == null ? "" : code;
+			this.name = name == null ? "" : name;
+
+			if (dirs != null)
+				this.dirs.addAll(dirs);
+		}
+
+		public String getCode() {
+			return code;
+		}
+
+		public String getName() {
+			return name;
 		}
 
 		public String[] getDirsNames() {
@@ -134,17 +100,9 @@ public class Languages {
 			if (obj == null || !getClass().equals(obj.getClass()))
 				return false;
 
-			Language langObj = (Language) obj;
-
-			// todo to consider a null fields
-
 			// ignoring dirs comparing
+			Language langObj = (Language) obj;
 			return code.equals(langObj.code) && name.equals(langObj.name);
-		}
-
-		@Override
-		public String toString() {
-			return code + "_" + name;
 		}
 	}
 

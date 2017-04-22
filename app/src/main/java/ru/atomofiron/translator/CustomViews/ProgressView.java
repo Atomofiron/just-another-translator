@@ -6,7 +6,7 @@ import android.util.AttributeSet;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
-import ru.atomofiron.translator.I;
+import ru.atomofiron.translator.Utils.I;
 import ru.atomofiron.translator.R;
 
 public class ProgressView extends android.support.v7.widget.AppCompatImageView {
@@ -37,7 +37,6 @@ public class ProgressView extends android.support.v7.widget.AppCompatImageView {
 	}
 
 	public void hide() {
-		I.Log("HIDE()");
 		if (!isShowing)
 			return;
 		isShowing = false;

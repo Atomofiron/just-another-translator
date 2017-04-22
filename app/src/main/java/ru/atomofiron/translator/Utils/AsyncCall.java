@@ -4,15 +4,15 @@ import android.os.AsyncTask;
 
 public class AsyncCall extends AsyncTask<Void, Void, Integer> {
 
-	private Callback callback = null;
+	private ProcessListener processListener = null;
 
-	public AsyncCall(Callback callback) {
-		this.callback = callback;
+	public AsyncCall(ProcessListener listener) {
+		processListener = listener;
 	}
 
 	@Override
 	protected Integer doInBackground(Void... params) {
-		while (!callback.onBackground())
+		while (!processListener.onBackgroundDone())
 			try {
 				Thread.sleep(3000);
 			} catch (Exception ignored) {}
@@ -24,11 +24,11 @@ public class AsyncCall extends AsyncTask<Void, Void, Integer> {
 	protected void onPostExecute(Integer integer) {
 		super.onPostExecute(integer);
 
-		callback.onDone();
+		processListener.onDone();
 	}
 
-	public interface Callback {
-		boolean onBackground();
+	public interface ProcessListener {
+		boolean onBackgroundDone();
 		void onDone();
 	}
 }

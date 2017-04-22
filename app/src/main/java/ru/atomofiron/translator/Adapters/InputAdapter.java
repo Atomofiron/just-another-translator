@@ -21,7 +21,6 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 	private int screenWidth;
 	private final ArrayList<Node> list = new ArrayList<>();
 	private OnInputListener onInputListener = null;
-	private int currentPosition = -1;
 	private Base base;
 	private EditText currentView;
 
@@ -30,47 +29,10 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 		this.base = base;
 		this.screenWidth = screenWidth;
 
-		updateList(base.get(Node.typeHistory));
+		updateList(base.get(Node.TYPE.HISTORY));
 
-		recyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
-			private int offset = 0;
-			private boolean alreadySlided = false;
-
-			@Override
-			public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-				super.onScrollStateChanged(recyclerView, newState);
-
-				if (newState == RecyclerView.SCROLL_STATE_IDLE && !alreadySlided)
-					slide(recyclerView);
-				else
-					if (newState == RecyclerView.SCROLL_STATE_DRAGGING)
-						alreadySlided = false;
-			}
-
-			@Override
-			public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-				super.onScrolled(recyclerView, dx, dy);
-				offset += dx;
-				offset = offset % screenWidth;
-
-				while (offset < 0)
-					offset += screenWidth;
-			}
-
-			private void slide(RecyclerView recyclerView) {
-				alreadySlided = true;
-				currentPosition = offset < (screenWidth / 2) ? 0 : 1;
-
-				currentView = (EditText) recyclerView.getChildAt(currentPosition);
-
-				if (onInputListener != null)
-					onInputListener.onSlide(currentView.getText().toString());
-
-				recyclerView.smoothScrollToPosition(recyclerView.getChildAdapterPosition(currentView));
-			}
-		});
+		recyclerView.setOnScrollListener(new ScrollListener());
 	}
-
 
 	@Override
 	public void onAnimationUpdate(ValueAnimator animation) {
@@ -88,7 +50,7 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 
 	@Override
 	public void onBindViewHolder(ViewHolder holder, int position) {
-		holder.editText.setText(position >= list.size() ? "" : list.get(position).title);
+		holder.editText.setText(position >= list.size() ? "" : list.get(position).getPhrase());
 		holder.editText.setWidth(screenWidth);
 	}
 
@@ -97,7 +59,7 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 		return list.size() + 1;
 	}
 
-	public void updateList(ArrayList<Node> list) {
+	private void updateList(ArrayList<Node> list) {
 		this.list.clear();
 		this.list.addAll(list);
 
@@ -118,6 +80,9 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 	}
 
 	public void setCurrentText(String text) {
+		if (currentView == null)
+			currentView = (EditText) recyclerView.getChildAt(list.size());
+
 		currentView.setText(text);
 	}
 
@@ -129,13 +94,13 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 	@Override
 	public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 		if (actionId == KeyEvent.KEYCODE_ENDCALL && onInputListener != null)
-			onInputListener.onInput(v.getText().toString());
+			onInputListener.onInput(v.getText().toString(), false);
 
 		return false;
 	}
 
 	static class ViewHolder extends RecyclerView.ViewHolder {
-		public ExEditText editText;
+		ExEditText editText;
 
 		ViewHolder(ExEditText v) {
 			super(v);
@@ -143,8 +108,45 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 		}
 	}
 
+	private class ScrollListener extends RecyclerView.OnScrollListener {
+		private int offset = 0;
+		private boolean alreadySlided = false;
+
+		@Override
+		public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+			super.onScrollStateChanged(recyclerView, newState);
+
+			if (newState == RecyclerView.SCROLL_STATE_IDLE && !alreadySlided)
+				slide(recyclerView);
+			else
+				if (newState == RecyclerView.SCROLL_STATE_DRAGGING)
+					alreadySlided = false;
+		}
+
+		@Override
+		public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+			super.onScrolled(recyclerView, dx, dy);
+			offset += dx;
+			offset = offset % screenWidth;
+
+			while (offset < 0)
+				offset += screenWidth;
+		}
+
+	private void slide(RecyclerView recyclerView) {
+		alreadySlided = true;
+		int currentPosition = offset < (screenWidth / 2) ? 0 : 1;
+
+		currentView = (EditText) recyclerView.getChildAt(currentPosition);
+
+		if (onInputListener != null)
+			onInputListener.onInput(currentView.getText().toString(), true);
+
+		recyclerView.smoothScrollToPosition(recyclerView.getChildAdapterPosition(currentView));
+	}
+}
+
 	public interface OnInputListener {
-		void onInput(String text);
-		void onSlide(String text);
+		void onInput(String text, boolean fromHistory);
 	}
 }

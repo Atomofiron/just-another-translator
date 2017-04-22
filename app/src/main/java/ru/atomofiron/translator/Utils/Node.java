@@ -1,24 +1,44 @@
 package ru.atomofiron.translator.Utils;
 
+import android.support.annotation.NonNull;
+
 public class Node {
+	public enum TYPE { HISTORY, FAVORITE }
 
-	public static final String typeHistory = "history";
-	public static final String typeFavorite = "favorite";
+	private String phrase;
+	private String translation;
+	private String direction;
+	private TYPE type;
 
-	public String title;
-	public String subtitle;
-	public String dir;
-	public boolean isHistory;
-
-	public Node(String title, String subtitle, String dir, String type) {
-		this.title = title;
-		this.subtitle = subtitle;
-		this.dir = dir;
-		this.isHistory = typeHistory.equals(type);
+	public Node(String phrase, String translation, String direction, @NonNull TYPE type) {
+		this.phrase = phrase == null ? "" : phrase;
+		this.translation = translation == null ? "" : translation;
+		this.direction = direction == null ? "" : direction;
+		this.type = type;
 	}
 
-	public String getType() {
-		return isHistory ? typeHistory : typeFavorite;
+	public String getPhrase() {
+		return phrase;
+	}
+
+	public String getTranslation() {
+		return translation;
+	}
+
+	public String getDirection() {
+		return direction;
+	}
+
+	public TYPE getType() {
+		return type;
+	}
+
+	public String getTypeString() {
+		return type.toString();
+	}
+
+	public boolean isHistory() {
+		return type.equals(TYPE.HISTORY);
 	}
 
 	@Override
@@ -27,12 +47,10 @@ public class Node {
 			return false;
 
 		Node node = (Node) obj;
-
-		return title.equals(node.title) && subtitle.equals(node.subtitle) && dir.equals(node.dir);
+		return phrase.equals(node.phrase) &&
+				translation.equals(node.translation) &&
+				direction.equals(node.direction) &&
+				type.equals(node.type);
 	}
 
-	@Override
-	public String toString() {
-		return "Node : { " + title + " : " + subtitle + " : " + dir + " : " + getType() + " }";
-	}
 }

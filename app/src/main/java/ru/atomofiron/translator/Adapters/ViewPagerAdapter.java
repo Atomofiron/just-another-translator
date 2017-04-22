@@ -2,7 +2,6 @@ package ru.atomofiron.translator.Adapters;
 
 
 import android.content.Context;
-import android.os.Parcelable;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.View;
@@ -12,9 +11,10 @@ import java.util.List;
 import ru.atomofiron.translator.R;
 
 public class ViewPagerAdapter extends PagerAdapter {
+	private static final int[] titles = new int[] { R.string.history, R.string.translation, R.string.favorite };
 
-	Context co;
-	List<View> pages = null;
+	private Context co;
+	private List<View> pages = null;
 
 	public ViewPagerAdapter(Context co, List<View> pages){
 		this.co = co;
@@ -43,24 +43,6 @@ public class ViewPagerAdapter extends PagerAdapter {
 		return view.equals(object);
 	}
 
-	@Override
-	public void finishUpdate(View arg0){
-	}
-
-	@Override
-	public void restoreState(Parcelable arg0, ClassLoader arg1){
-	}
-
-	@Override
-	public Parcelable saveState(){
-		return null;
-	}
-
-	@Override
-	public void startUpdate(View arg0){
-	}
-
-	int[] titles = new int[] { R.string.history, R.string.translate, R.string.favorite };
 	public CharSequence getPageTitle(int position) {
 		return co.getString(titles[position]);
 	}

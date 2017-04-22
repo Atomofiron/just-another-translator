@@ -4,7 +4,6 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
 import retrofit2.http.Url;
-import ru.atomofiron.translator.Utils.Retrofit.Dictionary.Main;
 
 public interface Api {
 
@@ -19,6 +18,6 @@ public interface Api {
                                       @Query("lang") String lang, @Query("format") String format);
 
     @GET
-    Call<Main> translate2(@Url String url, @Query("key") String key, @Query("lang") String lang,
-						  @Query("text") String text, @Query("ui") String ui);
+    Call<DictionaryResponse> translateWord(@Url String url, @Query("key") String key, @Query("lang") String lang,
+                                           @Query("text") String text, @Query("ui") String ui);
 }

@@ -6,9 +6,9 @@
 
     <color name="colorWhite">#ffffffff</color>
     <color name="colorBlack">#ff000000</color>
-    <color name="colorDark">#ff111111</color>
     <color name="colorLight">#ffeeeeee</color>
-    <color name="colorMiddle">#ff777777</color>
+    <color name="colorGrey">#ff777777</color>
+    <color name="colorDark">#ff111111</color>
     <color name="colorCrystalLiteBlue">#5577aaff</color>
     <color name="colorLiteBlue">#ff77aaff</color>
     <color name="colorDarkLiteBlue">#ff5588cc</color>

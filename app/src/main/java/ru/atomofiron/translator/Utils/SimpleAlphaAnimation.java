@@ -4,46 +4,38 @@ import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
-import ru.atomofiron.translator.I;
-
 public class SimpleAlphaAnimation implements Animation.AnimationListener {
+	private static final int DURATION = 200;
 
-	private OnActionListener onActionListener = null;
+	private CallbackAnimHalfway callbackAnimHalfway = null;
 	private View[] views;
-	private int count = 0;
 
 	public SimpleAlphaAnimation(View... views) {
 		this.views = views;
 	}
 
-	public void start(final OnActionListener listener) {
-		onActionListener = listener;
-		count = 0;
+	public void start(CallbackAnimHalfway callback) {
+		callbackAnimHalfway = callback;
 
-		for (View view : views) {
-				Animation anim = new AlphaAnimation(1, 0);
-				anim.setDuration(200);
+		for (int i = 0; i < views.length; i++) {
+			Animation anim = new AlphaAnimation(1, 0);
+			anim.setDuration(DURATION);
+
+			if (i == views.length - 1)
 				anim.setAnimationListener(this);
 
-				I.Log("startAnimation()");
-				view.startAnimation(anim);
-			}
+			views[i].startAnimation(anim);
+		}
 
 	}
 
 	@Override
 	public void onAnimationEnd(Animation animation) {
-		I.Log("onAnimationEnd() "+count);
-		count++;
-
-		if (views.length != count)
-			return;
-
-		if (onActionListener != null)
-			onActionListener.onAnimHalfway(views);
+		if (callbackAnimHalfway != null)
+			callbackAnimHalfway.onAnimHalfway(views);
 
 		Animation anim = new AlphaAnimation(0, 1);
-		anim.setDuration(200);
+		anim.setDuration(DURATION);
 
 		for (View view : views)
 			view.startAnimation(anim);
@@ -56,7 +48,7 @@ public class SimpleAlphaAnimation implements Animation.AnimationListener {
 	@Override
 	public void onAnimationRepeat(Animation animation) {}
 
-	public interface OnActionListener {
+	public interface CallbackAnimHalfway {
 		void onAnimHalfway(View... views);
 	}
 }
