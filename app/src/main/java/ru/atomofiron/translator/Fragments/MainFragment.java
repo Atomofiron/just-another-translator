@@ -92,33 +92,25 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		sp = I.SP(ac);
 		base = new Base(ac);
 
-		/*new LanguagesLoader(I.getUICode(ac), new LanguagesLoader.OnLoadedListener() {
-			public void onLoaded(Languages languages) {
-				initTranslator(languages);
-			}
-		}).execute();*/
+		new AsyncJob(new AsyncJob.Job() {
+			Languages languages;
+			public void onAsyncJobStart() {
+				boolean successful = false;
+				while (!successful)
+					try {
+						Response response = App.getApi().getLangs(I.API_KEY, I.getUICode(ac)).execute();
+						successful = response.isSuccessful();
 
-		App.getApi().getLangs(I.API_KEY, I.getUICode(ac)).enqueue(new Callback<LangsResponse>() {
-			@Override
-			public void onResponse(Call<LangsResponse> call, final Response<LangsResponse> response) {
-				new AsyncJob(new AsyncJob.Job() { // для асинхронного парсинга и получения объекта Languages
-					Languages languages;
-					public void onAsyncJobStart() {
-						LangsResponse langsResponse = response.body();
-						languages = new Languages(langsResponse.getLangs());
-					}
-					public void onJobEnd() {
-						initTranslator(this.languages);
-					}
-				}).execute();
+						if (successful)
+							languages = new Languages(((LangsResponse)response.body()).getLangs());
+						else
+							Thread.sleep(3000);
+					} catch (Exception ignored) {}
 			}
-
-			@Override
-			public void onFailure(Call<LangsResponse> call, Throwable t) {
-				I.Loge("LangsResponse: " + t);
-				progressView.hide();
+			public void onJobEnd() {
+				initTranslator(this.languages);
 			}
-		});
+		}).execute();
 
 		currentFirstLangCode = sp.getString(I.PREF_FIRST_LANG_CODE, "");
 		currentSecondLangCode = sp.getString(I.PREF_SECOND_LANG_CODE, "");
@@ -163,11 +155,15 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 		firstLangButton = (Button) mainView.findViewById(R.id.first_language);
 		secondLangButton = (Button) mainView.findViewById(R.id.second_language);
-		favoriteButton = (ImageButton) mainView.findViewById(R.id.btn_bookmark);
 		firstLangButton.setOnClickListener(this);
 		secondLangButton.setOnClickListener(this);
+		View swapButton = mainView.findViewById(R.id.swap_langs);
+		swapButton.setVisibility(View.VISIBLE);
+		swapButton.setOnClickListener(this);
+
+		mainView.findViewById(R.id.actions_layout).setVisibility(View.VISIBLE);
+		favoriteButton = (ImageButton) mainView.findViewById(R.id.btn_bookmark);
 		favoriteButton.setOnClickListener(this);
-		mainView.findViewById(R.id.swap_langs).setOnClickListener(this);
 		mainView.findViewById(R.id.btn_voice).setOnClickListener(this);
 		mainView.findViewById(R.id.btn_volume).setOnClickListener(this);
 
@@ -197,7 +193,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 		resultContainer = (LinearLayout) scrollView.findViewById(R.id.result_container);
 		yandexView = (TextView) inflater.inflate(R.layout.text_view_yandex, null, false);
-		yandexView.setText(Html.fromHtml(getString(R.string.yandex_label)));
+		yandexView.setText(Html.fromHtml(ac.getString(R.string.yandex_label)));
 		yandexView.setMovementMethod(LinkMovementMethod.getInstance());
 	}
 
