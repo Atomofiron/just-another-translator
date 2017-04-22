@@ -422,6 +422,10 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	private void showText() {
+		/* перед статртом анимации, нужно, чтобы в контэйнере была хоть одна вьюшка (с View не работает),
+		   иначе первая анимация выполняется, замирает и как будто никогда не заканчивается */
+		resultContainer.addView(new TextView(ac));
+
 		new SimpleAlphaAnimation(resultContainer).start(new SimpleAlphaAnimation.OnActionListener() {
 			public void onAnimHalfway(View... views) {
 				resultContainer.removeAllViews();
@@ -435,6 +439,10 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private void showFullText(final Main main) {
 		I.Log("showFullText() "+(resultContainer == null));
 		addToHistory();
+
+		/* перед статртом анимации, нужно, чтобы в контэйнере была хоть одна вьюшка (с View не работает),
+		   иначе первая анимация выполняется, замирает и как будто никогда не заканчивается */
+		resultContainer.addView(new TextView(ac));
 
 		new SimpleAlphaAnimation(resultContainer).start(new SimpleAlphaAnimation.OnActionListener() {
 			public void onAnimHalfway(View... views) {
