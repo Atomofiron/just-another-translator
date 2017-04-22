@@ -76,7 +76,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private String currentFirstLangCode;
 	private String currentSecondLangCode;
 	private String inputPhrase;
-	private String translationPhrase;
+	private String translatedPhrase;
 	private ListAdapter historyAdapter;
 	private ListAdapter favoriteAdapter;
 
@@ -264,9 +264,9 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 		updateLangButtons();
 
-		if (translationPhrase != null) {
-			inputAdapter.setCurrentText(translationPhrase);
-			translate(translationPhrase);
+		if (translatedPhrase != null) {
+			inputAdapter.setCurrentText(translatedPhrase);
+			translate(translatedPhrase);
 		}
 	}
 
@@ -305,10 +305,10 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	private Node getCurrentNode(Node.TYPE type) {
-		if (inputPhrase == null || translationPhrase == null)
+		if (inputPhrase == null || translatedPhrase == null)
 			return null;
 
-		return new Node(inputPhrase, translationPhrase, getCurrentLangs(), type);
+		return new Node(inputPhrase, translatedPhrase, getCurrentLangs(), type);
 	}
 
 	private String getCurrentLangs() {
@@ -323,7 +323,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	private void clearResult() {
-		translationPhrase = null;
+		translatedPhrase = null;
 		resultContainer.removeAllViews();
 		resultContainer.addView(catView);
 	}
@@ -348,10 +348,11 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			}
 
 			public void onDone() {
-				if (currentSecondLangCode.equals(((DetectResponse) response.body()).getLang()))
+				if (currentSecondLangCode.equals(((DetectResponse) response.body()).getLang())) {
+					translatedPhrase = value;
 					swapLangs();
-
-				translate(value);
+				} else
+					translate(value);
 			}
 		}).execute();
 	}
@@ -361,7 +362,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		progressView.show();
 
 		inputPhrase = value;
-		translationPhrase = null;
+		translatedPhrase = null;
 
 		new AsyncCall(new AsyncCall.ProcessListener() {
 			private Response response;
@@ -398,7 +399,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 					textBuilder.append(text);
 				}
 
-				translationPhrase = textBuilder.toString();
+				translatedPhrase = textBuilder.toString();
 				if (needAddToHistoryAfterTranslate)
 					addToHistory();
 				checkIfFavorite();
@@ -442,7 +443,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 				resultContainer.removeAllViews();
 				TextView textView = (TextView) LayoutInflater.from(ac)
 						.inflate(R.layout.text_view_result_main, resultContainer, false);
-				textView.setText(translationPhrase);
+				textView.setText(translatedPhrase);
 				resultContainer.addView(textView);
 				resultContainer.addView(yandexView);
 			}
@@ -465,7 +466,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 		String str;
 		TextView textView = (TextView) inflater.inflate(R.layout.text_view_result_main, resultContainer, false);
-		textView.setText(translationPhrase);
+		textView.setText(translatedPhrase);
 		resultContainer.addView(textView);
 
 		for (Def def : dictionaryResponse.getDef()) {
@@ -592,6 +593,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		inputAdapter.add(node);
 
 		translate(node.getPhrase());
-		translationPhrase = node.getTranslation();
+		translatedPhrase = node.getTranslation();
 	}
 }
