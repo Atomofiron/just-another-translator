@@ -133,18 +133,19 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 				offset += screenWidth;
 		}
 
-	private void slide(RecyclerView recyclerView) {
-		alreadySlided = true;
-		int currentPosition = offset < (screenWidth / 2) ? 0 : 1;
+		private void slide(RecyclerView recyclerView) {
+			alreadySlided = true;
+			int currentPosition = offset < (screenWidth / 2) ? 0 : 1;
 
-		currentView = (EditText) recyclerView.getChildAt(currentPosition);
+			currentView = (EditText) recyclerView.getChildAt(currentPosition);
+			currentView.requestFocus();
 
-		if (onInputListener != null)
-			onInputListener.onInput(currentView.getText().toString(), true);
+			if (onInputListener != null)
+				onInputListener.onInput(currentView.getText().toString(), true);
 
-		recyclerView.smoothScrollToPosition(recyclerView.getChildAdapterPosition(currentView));
+			recyclerView.smoothScrollToPosition(recyclerView.getChildAdapterPosition(currentView));
+		}
 	}
-}
 
 	public interface OnInputListener {
 		void onInput(String text, boolean fromHistory);

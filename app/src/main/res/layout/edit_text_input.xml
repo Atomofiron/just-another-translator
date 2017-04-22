@@ -12,4 +12,5 @@
     android:minLines="5"
     android:lines="5"
     android:maxLines="5"
+    android:focusableInTouchMode="true"
     />
