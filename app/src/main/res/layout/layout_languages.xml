@@ -8,7 +8,7 @@
 
     <ImageButton
         android:layout_width="@dimen/actionbar_height"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/actionbar_height"
         android:id="@+id/swap_langs"
         app:srcCompat="@drawable/ic_arrows"
         android:layout_centerInParent="true"
