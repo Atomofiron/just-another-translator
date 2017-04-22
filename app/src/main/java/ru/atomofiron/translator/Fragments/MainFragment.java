@@ -349,10 +349,10 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 			public void onDone() {
 				if (currentSecondLangCode.equals(((DetectResponse) response.body()).getLang())) {
-					translatedPhrase = value;
+					translatedPhrase = null;
 					swapLangs();
-				} else
-					translate(value);
+				}
+				translate(value);
 			}
 		}).execute();
 	}
@@ -419,14 +419,12 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 				try {
 					response = App.getApi().translateWord(I.DIC_URL, I.API_KEY_DIC, langs, value, I.getUICode(ac)).execute();
 				} catch (Exception ignored) {
-					I.Log("454: "+ignored.toString());
 					return false;
 				}
 				return true;
 			}
 
 			public void onDone() {
-				I.Log("isS: "+response.isSuccessful());
 				if (response.isSuccessful())
 					showDictionary((DictionaryResponse) response.body());
 				else
@@ -440,14 +438,17 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			public void onAnimHalfway(View... views) {
 				progressView.hide();
 
-				resultContainer.removeAllViews();
-				TextView textView = (TextView) LayoutInflater.from(ac)
-						.inflate(R.layout.text_view_result_main, resultContainer, false);
-				textView.setText(translatedPhrase);
-				resultContainer.addView(textView);
-				resultContainer.addView(yandexView);
+				printTranslation();
 			}
 		});
+	}
+	private void printTranslation() {
+		resultContainer.removeAllViews();
+		TextView textView = (TextView) LayoutInflater.from(ac)
+				.inflate(R.layout.text_view_result_main, resultContainer, false);
+		textView.setText(translatedPhrase);
+		resultContainer.addView(textView);
+		resultContainer.addView(yandexView);
 	}
 	private void showDictionary(final DictionaryResponse dictionaryResponse) {
 		new SimpleAlphaAnimation(resultContainer).start(new SimpleAlphaAnimation.CallbackAnimHalfway() {
@@ -592,7 +593,8 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 		inputAdapter.add(node);
 
-		translate(node.getPhrase());
 		translatedPhrase = node.getTranslation();
+		printTranslation();
+		inputAdapter.setCurrentText(translatedPhrase);
 	}
 }

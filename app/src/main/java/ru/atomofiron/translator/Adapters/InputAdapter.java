@@ -27,6 +27,7 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 	private Base base;
 	private EditText currentView;
 	private Handler handler = new Handler();
+	private boolean ignoreTextChanges = false;
 
 	public InputAdapter(RecyclerView recyclerView, Base base, final int screenWidth) {
 		this.recyclerView = recyclerView;
@@ -86,9 +87,11 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 
 	public void setCurrentText(String text) {
 		if (currentView == null)
-			currentView = (EditText) recyclerView.getChildAt(list.size());
+			currentView = (EditText) recyclerView.getChildAt(0);
 
 		currentView.setText(text);
+		handler.removeMessages(0);
+		onInputListener.onInput(text, true);
 	}
 
 
@@ -106,7 +109,7 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 
 	@Override
 	public void onTextChanged(final Editable s) {
-		if (onInputListener == null)
+		if (onInputListener == null || ignoreTextChanges)
 			return;
 
 		handler.removeMessages(0);
@@ -134,6 +137,8 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 		public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
 			super.onScrollStateChanged(recyclerView, newState);
 
+			ignoreTextChanges = newState != RecyclerView.SCROLL_STATE_IDLE;
+
 			if (newState == RecyclerView.SCROLL_STATE_IDLE && !alreadySlided)
 				slide(recyclerView);
 			else
@@ -156,10 +161,13 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 			int currentPosition = offset < (screenWidth / 2) ? 0 : 1;
 
 			currentView = (EditText) recyclerView.getChildAt(currentPosition);
-			currentView.requestFocus();
 
 			if (onInputListener != null)
 				onInputListener.onInput(currentView.getText().toString(), true);
+
+			int pos = currentView.getSelectionEnd();
+			currentView.requestFocus();
+			currentView.setSelection(pos);
 
 			recyclerView.smoothScrollToPosition(recyclerView.getChildAdapterPosition(currentView));
 		}
