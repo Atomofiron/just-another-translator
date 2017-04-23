@@ -81,8 +81,8 @@ public class Base {
 	}
 
 	public int remove(Node node) {
-		return db.delete(TABLE_TRANSLATIONS, CAL_PHRASE +"=? and "+ COL_TRANSLATION +"=? and "+ COL_DIR +"=? and "+ COL_TYPE +"=? ",
-				new String[] { node.getPhrase(), node.getTranslation(), node.getDirection(), node.getTypeString() });
+		return db.delete(TABLE_TRANSLATIONS, CAL_PHRASE +"=? and "+ COL_DIR +"=? and "+ COL_TYPE +"=? ",
+				new String[] { node.getPhrase(), node.getDirection(), node.getTypeString() });
 	}
 
 	private String getFilePath() {
