@@ -139,8 +139,11 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			public void onClick(View view) {
 				if (viewPager.getCurrentItem() == 0)
 					historyAdapter.clear();
-				else
+				else {
 					favoriteAdapter.clear();
+
+					checkIfFavorite();
+				}
 
 				fab.hide();
 			}
@@ -205,6 +208,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 				} else {
 					fab.hide();
 					updateLists();
+					checkIfFavorite();
 				}
 			}
 		});
@@ -360,7 +364,10 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	private void checkIfFavorite() {
-		favoriteButton.setActivated(base.contains(getCurrentNode(Node.TYPE.FAVORITE)));
+		Node node = getCurrentNode(Node.TYPE.FAVORITE);
+
+		if (node != null)
+			favoriteButton.setActivated(base.contains(node));
 	}
 
 	private void updateLangsAndTranslate(final String text) {
