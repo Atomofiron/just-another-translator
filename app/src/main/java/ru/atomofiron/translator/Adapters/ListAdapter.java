@@ -43,7 +43,7 @@ public class ListAdapter extends BaseAdapter implements View.OnClickListener {
 
 	@Override
 	public Node getItem(int position) {
-		return nodes.get(getCount() - 1 - position); // todo
+		return nodes.get(position);
 	}
 
 	@Override
@@ -75,7 +75,7 @@ public class ListAdapter extends BaseAdapter implements View.OnClickListener {
 		} else
 			holder = (ViewHolder) convertView.getTag();
 
-		Node node = nodes.get(getCount() - 1 - position);
+		Node node = nodes.get(position);
 
 		holder.node = node;
 		holder.icon.setImageDrawable(co.getResources().getDrawable(

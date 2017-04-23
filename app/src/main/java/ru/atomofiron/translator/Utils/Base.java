@@ -72,7 +72,7 @@ public class Base {
 					String title = cursor.getString(cursor.getColumnIndex(CAL_PHRASE));
 					String subtitle = cursor.getString(cursor.getColumnIndex(COL_TRANSLATION));
 					String dir = cursor.getString(cursor.getColumnIndex(COL_DIR));
-					nodes.add(new Node(title, subtitle, dir, type));
+					nodes.add(0, new Node(title, subtitle, dir, type));
 				} while (cursor.moveToNext());
 
 			cursor.close();
