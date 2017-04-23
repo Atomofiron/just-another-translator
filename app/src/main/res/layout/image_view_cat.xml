@@ -5,6 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="240dp"
     android:src="@drawable/cat"
-    android:alpha="0.5"
+    android:alpha="0.3"
     android:scaleType="center"
     />
