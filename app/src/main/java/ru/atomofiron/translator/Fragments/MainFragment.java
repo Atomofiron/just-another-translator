@@ -293,7 +293,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	private Node getCurrentNode(Node.TYPE type) {
-		if (inputPhrase == null || translatedPhrase == null)
+		if (inputPhrase == null)
 			return null;
 
 		return new Node(inputPhrase, translatedPhrase, getCurrentLangs(), type);
