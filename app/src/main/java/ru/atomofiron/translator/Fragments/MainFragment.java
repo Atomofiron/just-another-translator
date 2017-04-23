@@ -591,7 +591,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 					for (Mean m : tr.getMean())
 						if ((str = m.getText()) != null) {
 							textView.append(str);
-							textView.append(" ");
+							textView.append(", ");
 						}
 
 					textView.append(")");
@@ -606,9 +606,15 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 						textView.setText(e.getText() + " - ");
 
-						for (Tr_ t : e.getTr())
-							if ((str = t.getText()) != null)
-								textView.append(str + ", ");
+						for (Tr_ t : e.getTr()) {
+							str = t.getText();
+
+							if (!textView.getText().toString().endsWith(" - ") && str != null)
+								textView.append(", ");
+
+							if (str != null)
+								textView.append(str);
+						}
 
 						if (!textView.getText().equals("null - "))
 							layout.addView(textView);
