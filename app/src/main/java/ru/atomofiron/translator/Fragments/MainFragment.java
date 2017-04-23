@@ -284,7 +284,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		if (node == null)
 			return;
 
-		inputAdapter.add(node);
+		base.put(node);
 		historyAdapter.update();
 	}
 
@@ -624,7 +624,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			printTranslation();
 
 		viewPager.setCurrentItem(TRANSLATE_TAB_NUM);
-		inputAdapter.add(node);
+		inputAdapter.add(node.getPhrase());
 		translate(inputPhrase);
 	}
 }

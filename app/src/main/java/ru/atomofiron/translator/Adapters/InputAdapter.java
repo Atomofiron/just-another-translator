@@ -1,6 +1,5 @@
 package ru.atomofiron.translator.Adapters;
 
-import android.animation.ValueAnimator;
 import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -17,12 +16,12 @@ import ru.atomofiron.translator.R;
 import ru.atomofiron.translator.Utils.Base;
 import ru.atomofiron.translator.Utils.Node;
 
-public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> implements ValueAnimator.AnimatorUpdateListener, TextView.OnEditorActionListener, ExEditText.OnTextChangedListener {
+public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> implements TextView.OnEditorActionListener, ExEditText.OnTextChangedListener {
 	private static final int DELAY_AFTER_TYPING_MS = 1000;
 
 	private RecyclerView recyclerView;
 	private int screenWidth;
-	private final ArrayList<Node> list = new ArrayList<>();
+	private final ArrayList<String> phrases = new ArrayList<>();
 	private OnInputListener onInputListener = null;
 	private Base base;
 	private EditText currentView;
@@ -40,11 +39,6 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 	}
 
 	@Override
-	public void onAnimationUpdate(ValueAnimator animation) {
-		recyclerView.scrollTo(((int)animation.getAnimatedValue()), 0);
-	}
-
-	@Override
 	public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 		ExEditText v = (ExEditText) LayoutInflater.from(parent.getContext())
 				.inflate(R.layout.edit_text_input, parent, false);
@@ -56,36 +50,43 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 
 	@Override
 	public void onBindViewHolder(ViewHolder holder, int position) {
-		holder.editText.setText(position >= list.size() ? "" : list.get(position).getPhrase());
+		boolean value = ignoreTextChanges;
+		ignoreTextChanges = true;
+		holder.editText.setText(position >= phrases.size() ? "" : phrases.get(position));
+		ignoreTextChanges = value;
 		holder.editText.setWidth(screenWidth);
 	}
 
 	@Override
 	public int getItemCount() {
-		return list.size() + 1;
+		return phrases.size() + 1;
 	}
 
 	private void updateList(ArrayList<Node> list) {
-		this.list.clear();
-		this.list.addAll(list);
+		this.phrases.clear();
+
+		for (Node n : list)
+			if (!this.phrases.contains(n.getPhrase()))
+				this.phrases.add(n.getPhrase());
 
 		notifyDataSetChanged();
 		recyclerView.scrollToPosition(list.size());
 	}
 
-	public void add(Node node) {
-		if (recyclerView.isComputingLayout())
+	public void add(String phrase) {
+		if (recyclerView.isComputingLayout() || phrase.isEmpty())
 			return;
 
-		list.remove(node);
-		list.add(node);
-		base.put(node);
+		phrases.remove(phrase);
+		phrases.add(phrase);
 
 		notifyDataSetChanged();
-		recyclerView.scrollToPosition(list.size() - 1);
+		recyclerView.scrollToPosition(phrases.size() - 1);
 	}
 
 	public void setCurrentText(String text) {
+		add(text);
+
 		if (currentView == null)
 			currentView = (EditText) recyclerView.getChildAt(0);
 
@@ -101,8 +102,13 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 
 	@Override
 	public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-		if (actionId == KeyEvent.KEYCODE_ENDCALL && onInputListener != null)
-			onInputListener.onInput(v.getText().toString(), true);
+		if (actionId == KeyEvent.KEYCODE_ENDCALL) {
+			String phrase = v.getText().toString();
+			phrases.add(phrase);
+
+			if (onInputListener != null)
+				onInputListener.onInput(v.getText().toString(), true);
+		}
 
 		return false;
 	}
@@ -115,7 +121,9 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 		handler.removeMessages(0);
 		handler.postDelayed(new Runnable() {
 			public void run() {
-				onInputListener.onInput(s.toString(), false);
+				String str = s.toString();
+				onInputListener.onInput(str, false);
+				add(str);
 			}
 		}, DELAY_AFTER_TYPING_MS);
 	}
@@ -130,14 +138,16 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 	}
 
 	private class ScrollListener extends RecyclerView.OnScrollListener {
-		private int offset = 0;
 		private boolean alreadySlided = false;
 
 		@Override
 		public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
 			super.onScrollStateChanged(recyclerView, newState);
 
-			ignoreTextChanges = newState != RecyclerView.SCROLL_STATE_IDLE;
+			if (newState == RecyclerView.SCROLL_STATE_DRAGGING)
+				ignoreTextChanges = true;
+			else if (newState == RecyclerView.SCROLL_STATE_SETTLING)
+				ignoreTextChanges = false;
 
 			if (newState == RecyclerView.SCROLL_STATE_IDLE && !alreadySlided)
 				slide(recyclerView);
@@ -149,19 +159,15 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 		@Override
 		public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
 			super.onScrolled(recyclerView, dx, dy);
-			offset += dx;
-			offset = offset % screenWidth;
-
-			while (offset < 0)
-				offset += screenWidth;
 		}
 
 		private void slide(RecyclerView recyclerView) {
 			alreadySlided = true;
-			int currentPosition = offset < (screenWidth / 2) ? 0 : 1;
 
-			currentView = (EditText) recyclerView.getChildAt(currentPosition);
-			recyclerView.smoothScrollToPosition(recyclerView.getChildAdapterPosition(currentView));
+			currentView = (EditText) recyclerView.getChildAt(0);
+			if (Math.abs(currentView.getX()) > (screenWidth / 2))
+				currentView = (EditText) recyclerView.getChildAt(1);
+			recyclerView.smoothScrollToPosition(recyclerView.getChildLayoutPosition(currentView));
 
 			if (onInputListener != null)
 				onInputListener.onInput(currentView.getText().toString(), true);
@@ -169,7 +175,6 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 			int pos = currentView.getSelectionEnd();
 			currentView.requestFocus();
 			currentView.setSelection(pos);
-
 		}
 	}
 
