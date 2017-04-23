@@ -190,16 +190,16 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
 			public void onPageScrollStateChanged(int state) {}
 			public void onPageSelected(int position) {
-				addToHistory();
-
 				if (position == HISTORY_TAB_NUM) {
 					if (historyListView.getCount() > 0)
 						fab.show();
 				} else if (position == FAVORITES_TAB_NUM) {
 					if (favoriteAdapter.getCount() > 0)
 						fab.show();
-				} else
+				} else {
 					fab.hide();
+					updateLists();
+				}
 			}
 		});
 		((TabLayout) view.findViewById(R.id.tab_layout)).setupWithViewPager(viewPager);
@@ -231,7 +231,14 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	public void onStop() {
 		super.onStop();
 
-		addToHistory();
+		updateLists();
+	}
+
+	private void updateLists() {
+		if (historyAdapter != null) {
+			historyAdapter.update();
+			favoriteAdapter.update();
+		}
 	}
 
 	@Override
@@ -299,7 +306,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 	private void addToHistory() {
 		Node node = getCurrentNode(Node.TYPE.HISTORY);
-		if (node == null)
+		if (node == null || node.getTranslation().isEmpty())
 			return;
 
 		base.put(node);
