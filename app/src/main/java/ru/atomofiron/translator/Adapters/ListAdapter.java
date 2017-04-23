@@ -62,6 +62,12 @@ public class ListAdapter extends BaseAdapter implements View.OnClickListener {
 		notifyDataSetChanged();
 	}
 
+	public void clear() {
+		base.clear(type.toString());
+		update();
+		notifyDataSetChanged();
+	}
+
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		ViewHolder holder;

@@ -88,6 +88,11 @@ public class Base {
 				new String[] { node.getPhrase(), node.getDirection(), node.getTypeString() });
 	}
 
+	public int clear(String type) {
+		return db.delete(TABLE_TRANSLATIONS, COL_TYPE +"=? ",
+				new String[] { type });
+	}
+
 	private String getFilePath() {
 		return I.getFilesPath(co)+"/base.db";
 	}

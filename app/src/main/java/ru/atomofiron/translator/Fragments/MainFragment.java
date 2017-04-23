@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -53,13 +55,16 @@ import ru.atomofiron.translator.Utils.SimpleAlphaAnimation;
 
 public class MainFragment extends Fragment implements InputAdapter.OnInputListener, View.OnClickListener, AdapterView.OnItemClickListener {
 
+	private static final int HISTORY_TAB_NUM = 0;
 	private static final int TRANSLATE_TAB_NUM = 1;
+	private static final int FAVORITES_TAB_NUM = 2;
 
 	private View mainView = null;
 	private Activity ac;
 	private SharedPreferences sp;
 	private Base base;
 
+	private FloatingActionButton fab;
 	private Button firstLangButton;
 	private Button secondLangButton;
 	private ImageButton favoriteButton;
@@ -110,6 +115,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 		currentFirstLangCode = sp.getString(I.PREF_FIRST_LANG_CODE, "");
 		currentSecondLangCode = sp.getString(I.PREF_SECOND_LANG_CODE, "");
+
 	}
 
 
@@ -121,6 +127,19 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			return mainView;
 
 		mainView = inflater.inflate(R.layout.fragment_main, container, false);
+
+		fab = (FloatingActionButton) mainView.findViewById(R.id.fab);
+		fab.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View view) {
+				if (viewPager.getCurrentItem() == 0)
+					historyAdapter.clear();
+				else
+					favoriteAdapter.clear();
+
+				fab.hide();
+			}
+		});
+		fab.hide();
 
         return mainView;
     }
@@ -147,7 +166,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 		LayoutInflater inflater = LayoutInflater.from(ac);
 
-		ListView historyListView = new ListView(ac);
+		final ListView historyListView = new ListView(ac);
 		ScrollView scrollView = (ScrollView) inflater.inflate(R.layout.scroll_view_result, null, false);
 		ListView favoriteListView = new ListView(ac);
 
@@ -170,7 +189,18 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 			public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
 			public void onPageScrollStateChanged(int state) {}
-			public void onPageSelected(int position) { addToHistory(); }
+			public void onPageSelected(int position) {
+				addToHistory();
+
+				if (position == HISTORY_TAB_NUM) {
+					if (historyListView.getCount() > 0)
+						fab.show();
+				} else if (position == FAVORITES_TAB_NUM) {
+					if (favoriteAdapter.getCount() > 0)
+						fab.show();
+				} else
+					fab.hide();
+			}
 		});
 		((TabLayout) view.findViewById(R.id.tab_layout)).setupWithViewPager(viewPager);
 
