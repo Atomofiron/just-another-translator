@@ -225,11 +225,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 				.setCancelable(true)
 				.setSingleChoiceItems(languages.getStringArray(), languages.indexByCode(currentFirstLangCode), new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
-						Languages.Language lang = languages.get(which);
-						currentFirstLangCode = lang.getCode();
-
-						if (!lang.containsDir(currentSecondLangCode))
-							currentSecondLangCode = lang.getDirsNames()[0];
+						currentFirstLangCode = languages.getDirByPosition(which);
 
 						updateLangButtons();
 						dialog.dismiss();
@@ -239,15 +235,14 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 				.create().show();
 	}
 	private void showSelectingSecondLang() {
-		Languages.Language lang = languages.getByCode(currentFirstLangCode);
 		new AlertDialog.Builder(ac)
 				.setCancelable(true)
 				.setSingleChoiceItems(
-						lang.getDirsNames(),
-						lang.indexOfDir(currentSecondLangCode),
+						languages.getDirsNames(),
+						languages.indexOfDir(currentSecondLangCode),
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int which) {
-								currentSecondLangCode = languages.getByCode(currentFirstLangCode).getDirByPosition(which);
+								currentSecondLangCode = languages.getDirByPosition(which);
 								secondLangButton.setText(languages.getByCode(currentSecondLangCode).getName());
 
 								dialog.dismiss();

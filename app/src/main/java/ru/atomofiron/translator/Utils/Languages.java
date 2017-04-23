@@ -6,14 +6,15 @@ import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import java.util.Map;
 
+// парсинг полученного списка языков
 public class Languages {
 	private final ArrayList<Language> languages = new ArrayList<>();
+	private final ArrayList<String> dirs = new ArrayList<>();
 
 	public Languages(JsonObject langsObj) {
-		ArrayList<String> codes = new ArrayList<>();
 		for (Map.Entry<String, JsonElement> e : langsObj.entrySet()) {
-			languages.add(new Language(e.getKey(), e.getValue().getAsString(), codes));
-			codes.add(e.getKey());
+			languages.add(new Language(e.getKey(), e.getValue().getAsString()));
+			dirs.add(e.getKey());
 		}
 	}
 
@@ -41,6 +42,23 @@ public class Languages {
 		return -1;
 	}
 
+	public int indexOfDir(String code) {
+		return dirs.indexOf(code);
+	}
+
+	public String getDirByPosition(int i) {
+		return dirs.get(i);
+	}
+
+	public String[] getDirsNames() {
+		String[] arr = new String[dirs.size()];
+
+		for (int i = 0; i < arr.length; i++)
+			arr[i] = getByCode(dirs.get(i)).name;
+
+		return arr;
+	}
+
 	public String[] getStringArray() {
 		String[] arr = new String[size()];
 		for (int i = 0; i < arr.length; i++)
@@ -56,14 +74,10 @@ public class Languages {
 	public class Language {
 		String code;
 		String name;
-		private final ArrayList<String> dirs = new ArrayList<>();
 
-		Language(String code, String name, ArrayList<String> dirs) {
+		Language(String code, String name) {
 			this.code = code == null ? "" : code;
 			this.name = name == null ? "" : name;
-
-			if (dirs != null)
-				this.dirs.addAll(dirs);
 		}
 
 		public String getCode() {
@@ -72,27 +86,6 @@ public class Languages {
 
 		public String getName() {
 			return name;
-		}
-
-		public String[] getDirsNames() {
-			String[] arr = new String[dirs.size()];
-
-			for (int i = 0; i < arr.length; i++)
-				arr[i] = getByCode(dirs.get(i)).name;
-
-			return arr;
-		}
-
-		public boolean containsDir(String code) {
-			return dirs.contains(code);
-		}
-
-		public int indexOfDir(String code) {
-			return dirs.indexOf(code);
-		}
-
-		public String getDirByPosition(int i) {
-			return dirs.get(i);
 		}
 
 		@Override
