@@ -68,7 +68,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private ImageButton favoriteButton;
 	private ProgressView progressView;
 	private LinearLayout resultContainer;
-	private TextView yandexView;
 	private ViewPager viewPager;
 	private ImageView catView;
 
@@ -182,7 +181,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		((TabLayout) view.findViewById(R.id.tab_layout)).setupWithViewPager(viewPager);
 
 		resultContainer = (LinearLayout) scrollView.findViewById(R.id.result_container);
-		yandexView = (TextView) inflater.inflate(R.layout.text_view_yandex, null, false);
+		TextView yandexView = (TextView) view.findViewById(R.id.yandex_label);
 		yandexView.setText(Html.fromHtml(ac.getString(R.string.yandex_label)));
 		yandexView.setMovementMethod(LinkMovementMethod.getInstance());
 
@@ -454,7 +453,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 				.inflate(R.layout.text_view_result_main, resultContainer, false);
 		textView.setText(translatedPhrase);
 		resultContainer.addView(textView);
-		resultContainer.addView(yandexView);
 	}
 	private void showDictionary(final DictionaryResponse dictionaryResponse) {
 		checkIfFavorite();
@@ -564,7 +562,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			cardView.addView(layout);
 			resultContainer.addView(cardView);
 		}
-		resultContainer.addView(yandexView);
 	}
 
 

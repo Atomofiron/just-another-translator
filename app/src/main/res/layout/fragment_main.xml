@@ -43,7 +43,19 @@
         android:layout_height="match_parent"
         android:id="@+id/view_pager"
         android:layout_below="@+id/top_layout"
+        android:layout_above="@+id/yandex_label"
+        />
+    <TextView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/yandex_label"
+        android:gravity="center"
+        android:textColor="@color/colorBlack"
+        android:textSize="@dimen/middle_text_size"
+        android:padding="@dimen/small_space"
         android:layout_above="@+id/tab_layout"
+        android:background="@color/colorCrystalLiteBlue"
         />
     <android.support.design.widget.TabLayout
         android:layout_width="match_parent"
