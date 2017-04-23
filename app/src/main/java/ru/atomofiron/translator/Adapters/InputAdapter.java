@@ -6,21 +6,25 @@ import android.os.Handler;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.EditText;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import ru.atomofiron.translator.CustomViews.ExEditText;
 import ru.atomofiron.translator.R;
 import ru.atomofiron.translator.Utils.I;
 
-public class InputAdapter extends PagerAdapter implements ExEditText.OnTextChangedListener, ViewPager.OnPageChangeListener {
+/**
+ * Для ввода теста, его удаления и возврата.
+ */
+public class InputAdapter extends PagerAdapter implements ViewPager.OnPageChangeListener, TextWatcher {
 	private static final int DELAY_AFTER_TYPING_MS = 1000;
 
 	private LayoutInflater inflater;
-	private List<ExEditText> pages = new ArrayList<>();
+	private List<EditText> pages = new ArrayList<>();
 	private ViewPager pager;
 
 	private Handler handler = new Handler();
@@ -53,8 +57,8 @@ public class InputAdapter extends PagerAdapter implements ExEditText.OnTextChang
 	}
 
 	private void createView() {
-		ExEditText editText = (ExEditText) inflater.inflate(R.layout.edit_text_input, null, false);
-		editText.setOnTextChangedListener(this);
+		EditText editText = (EditText) inflater.inflate(R.layout.edit_text_input, null, false);
+		editText.addTextChangedListener(this);
 		pages.add(editText);
 	}
 
@@ -80,26 +84,6 @@ public class InputAdapter extends PagerAdapter implements ExEditText.OnTextChang
 		return view.equals(object);
 	}
 
-	@Override
-	public void onTextChanged(final Editable s) {
-		if (ignoreTextChanges)
-			return;
-
-		handler.removeMessages(0);
-
-		String text = I.clearInput(s.toString());
-		if (!text.isEmpty() && !text.equals(lastInputText)) {
-			lastInputText = text;
-			handler.postDelayed(new Runnable() {
-				public void run() {
-					String str = s.toString();
-					onInputListener.onInput(str);
-					setText(str);
-				}
-			}, DELAY_AFTER_TYPING_MS);
-		}
-	}
-
 	public void setOnInputListener(OnInputListener onInputListener) {
 		this.onInputListener = onInputListener;
 	}
@@ -114,6 +98,33 @@ public class InputAdapter extends PagerAdapter implements ExEditText.OnTextChang
 
 	@Override
 	public void onPageScrollStateChanged(int state) {}
+
+	@Override
+	public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+	@Override
+	public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+	@Override
+	public void afterTextChanged(final Editable s) {
+		if (ignoreTextChanges)
+			return;
+
+		handler.removeMessages(0);
+
+		// автоматический перевод при вводе текста с задержкой в 1000 мс
+		String text = I.clearInput(s.toString());
+		if (!text.isEmpty() && !text.equals(lastInputText)) {
+			lastInputText = text;
+			handler.postDelayed(new Runnable() {
+				public void run() {
+					String str = s.toString();
+					onInputListener.onInput(str);
+					setText(str);
+				}
+			}, DELAY_AFTER_TYPING_MS);
+		}
+	}
 
 	public interface OnInputListener {
 		void onInput(String text);
