@@ -2,6 +2,9 @@ package ru.atomofiron.translator.Utils;
 
 import android.os.AsyncTask;
 
+/**
+ * Для цикличной отправки запростов к API.
+ */
 public class AsyncCall extends AsyncTask<Void, Void, Integer> {
 
 	private ProcessListener processListener = null;
@@ -28,7 +31,16 @@ public class AsyncCall extends AsyncTask<Void, Void, Integer> {
 	}
 
 	public interface ProcessListener {
+		/**
+		 * Вызывается в параллельном потоке.
+		 *
+		 * @return  повторить операцию.
+		 */
 		boolean onBackgroundDone();
+
+		/**
+		 * Вызывается в основном потоке после завершения вызовов onBackgroundDone().
+		 */
 		void onDone();
 	}
 }

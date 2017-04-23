@@ -4,6 +4,9 @@ import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
+/**
+ * Простая анимация объектов, при изменении их содержимого.
+ */
 public class SimpleAlphaAnimation implements Animation.AnimationListener {
 	private static final int DURATION = 200;
 
@@ -29,6 +32,7 @@ public class SimpleAlphaAnimation implements Animation.AnimationListener {
 
 	}
 
+	// когда объект полностью прозрачен, его содержимое маняется, после чего объект(ы) плавно появляется
 	@Override
 	public void onAnimationEnd(Animation animation) {
 		if (callbackAnimHalfway != null)

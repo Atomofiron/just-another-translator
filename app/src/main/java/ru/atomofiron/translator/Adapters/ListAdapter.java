@@ -16,6 +16,9 @@ import ru.atomofiron.translator.R;
 import ru.atomofiron.translator.Utils.Base;
 import ru.atomofiron.translator.Utils.Node;
 
+/**
+ * Для отображения списков истории и избранного.
+ */
 public class ListAdapter extends BaseAdapter implements View.OnClickListener {
 
 	private Context co;
@@ -40,7 +43,7 @@ public class ListAdapter extends BaseAdapter implements View.OnClickListener {
 
 	@Override
 	public Node getItem(int position) {
-		return nodes.get(getCount() - 1 - position);
+		return nodes.get(getCount() - 1 - position); // todo
 	}
 
 	@Override
@@ -78,6 +81,8 @@ public class ListAdapter extends BaseAdapter implements View.OnClickListener {
 		holder.icon.setImageDrawable(co.getResources().getDrawable(
 				node.isHistory() ? R.drawable.ic_trashbox : R.drawable.ic_bookmark_selector));
 		holder.icon.setActivated(true);
+
+		// переносы строк заменяются на пробелы
 		holder.title.setText(node.getPhrase().replace("\n", " "));
 		holder.subtitle.setText(node.getTranslation().replace("\n", " "));
 

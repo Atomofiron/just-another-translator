@@ -5,6 +5,9 @@ import retrofit2.http.GET;
 import retrofit2.http.Query;
 import retrofit2.http.Url;
 
+/**
+ * Для отправки запросов к Яндекс API посредством Retrofit.
+ */
 public interface Api {
 
     @GET("/api/v1.5/tr.json/getLangs")

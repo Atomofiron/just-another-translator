@@ -2,6 +2,9 @@ package ru.atomofiron.translator.Utils;
 
 import android.support.annotation.NonNull;
 
+/**
+ * Для хранения результов переводов.
+ */
 public class Node {
 	public enum TYPE { HISTORY, FAVORITE }
 
@@ -41,6 +44,8 @@ public class Node {
 		return type.equals(TYPE.HISTORY);
 	}
 
+	/* поле translation игнорируется.
+	   так сделано, чтобы можно было находить объект, у которого отличается поле с переводом */
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == null || !getClass().equals(obj.getClass()))

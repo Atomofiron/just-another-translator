@@ -7,6 +7,9 @@ import android.database.sqlite.SQLiteDatabase;
 
 import java.util.ArrayList;
 
+/**
+ * Для хранения и чтения истории и избранного.
+ */
 public class Base {
 
 	private static final String CAL_PHRASE = "phrase";

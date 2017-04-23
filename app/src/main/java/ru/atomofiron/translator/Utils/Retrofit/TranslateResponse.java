@@ -4,6 +4,9 @@ import java.util.List;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+/**
+ * Для чтения данных, полученных от API Яндекс.Переводчика.
+ */
 public class TranslateResponse {
 
 	@SerializedName("code")

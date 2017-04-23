@@ -10,6 +10,9 @@ import java.util.List;
 
 import ru.atomofiron.translator.R;
 
+/**
+ * Отображения перевода и списков истории и избранного.
+ */
 public class ViewPagerAdapter extends PagerAdapter {
 	private static final int[] titles = new int[] { R.string.history, R.string.translation, R.string.favorite };
 

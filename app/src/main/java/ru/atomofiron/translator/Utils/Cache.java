@@ -2,8 +2,13 @@ package ru.atomofiron.translator.Utils;
 
 import java.util.ArrayList;
 
-import ru.atomofiron.translator.Utils.Retrofit.DictionaryResponse;
-
+/**
+ * Кэширование результатов перевода через Яндекс Словарь.
+ * Сравнение ключей не по хэшу, а по Object.equals().
+ *
+ * @param <K>  Тип ключа.
+ * @param <V>  Тип значения.
+ */
 public class Cache<K, V> {
 	private final ArrayList<K> keys = new ArrayList<>();
 	private final ArrayList<V> values = new ArrayList<>();
@@ -26,6 +31,13 @@ public class Cache<K, V> {
 		return values.get(n);
 	}
 
+	/**
+	 * Возвращает ключ, который равен передаваемуму посредством Object.equals().
+	 *
+	 * @param key  Ключ.
+	 * @return     Другой ключ.
+	 */
+	// Костыль тот ещё, см. Node.equals()
 	public K getKey(K key) {
 		if (key == null)
 			return null;
@@ -34,6 +46,13 @@ public class Cache<K, V> {
 		return n == -1 ? null : keys.get(n);
 	}
 
+	/**
+	 * Добавляет значение в кэш, или обновляет, если ключ уже содержится.
+	 *
+	 * @param key    Ключ.
+	 * @param value  Значеие.
+	 * @return       Значение добавлено успешно.
+	 */
 	public boolean put(K key, V value) {
 		if (key == null || value == null)
 			return false;
@@ -44,15 +63,19 @@ public class Cache<K, V> {
 			keys.add(key);
 			values.add(value);
 
-			if (keys.size() > limit) {
-				keys.remove(0);
-				values.remove(0);
-			}
+			trim();
 		} else {
 			values.remove(n);
 			values.add(n, value);
 		}
 		return true;
+	}
+
+	private void trim() {
+		while (keys.size() > limit) {
+			keys.remove(0);
+			values.remove(0);
+		}
 	}
 
 	public boolean containsKey(K key) {

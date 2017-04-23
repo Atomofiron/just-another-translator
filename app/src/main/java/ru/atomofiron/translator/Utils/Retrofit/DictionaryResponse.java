@@ -8,6 +8,9 @@ import com.google.gson.annotations.SerializedName;
 
 import ru.atomofiron.translator.Utils.Retrofit.Dictionary.Def;
 
+/**
+ * Для чтения данных, полученных от API Яндекс.Словаря.
+ */
 public class DictionaryResponse {
 
 	@SerializedName("head")

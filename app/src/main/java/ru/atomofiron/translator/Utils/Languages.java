@@ -6,7 +6,9 @@ import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import java.util.Map;
 
-// парсинг полученного списка языков
+/**
+ * Используется для использования полученного списка языков.
+ */
 public class Languages {
 	private final ArrayList<Language> languages = new ArrayList<>();
 	private final ArrayList<String> dirs = new ArrayList<>();
@@ -93,7 +95,6 @@ public class Languages {
 			if (obj == null || !getClass().equals(obj.getClass()))
 				return false;
 
-			// ignoring dirs comparing
 			Language langObj = (Language) obj;
 			return code.equals(langObj.code) && name.equals(langObj.name);
 		}

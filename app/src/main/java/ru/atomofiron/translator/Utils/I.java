@@ -1,16 +1,16 @@
 package ru.atomofiron.translator.Utils;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.widget.Toast;
 
 import ru.atomofiron.translator.BuildConfig;
 
-// класс для неклассифицированных полей и методов
+/**
+ * Класс для неклассифицированных полей и методов.
+ */
 public class I {
 
 	public static final String API_KEY = "trnsl.1.1.20170419T031622Z.8e68bdd8f4d61856.840a8a3eeae258956ff37db9eb6d04d0a6b9d51d";
@@ -35,10 +35,24 @@ public class I {
 		Toast.makeText(co, co.getString(stringId), Toast.LENGTH_LONG).show();
 	}
 
+	/**
+	 * Для сокращения кода получения объекта настроек приложения.
+	 *
+	 * @param co  Контекст приложения.
+	 * @return    Объект для работы с хранилищем настроек приложения.
+	 */
 	public static SharedPreferences SP(Context co) {
 		return PreferenceManager.getDefaultSharedPreferences(co);
 	}
 
+
+	/**
+	 * Удаляет лишние переносы строк,
+	 * где лишними считаются в начале текста, в конце и повторяющиеся подряд.
+	 *
+	 * @param text  Входной текст.
+	 * @return      Текст без лишних переносов строк.
+	 */
 	public static String clearInput(String text) {
 		while (text.contains("\n\n"))
 			text = text.replace("\n\n", "\n");
@@ -52,6 +66,10 @@ public class I {
 		return text;
 	}
 
+	/**
+	 * @param co  Контекст приложения.
+	 * @return    Код установленной на устройстве локадизации.
+	 */
 	public static String getUICode(Context co) {
 		return co.getResources().getConfiguration().locale.getLanguage();
 	}
