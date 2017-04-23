@@ -115,13 +115,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 		currentFirstLangCode = sp.getString(I.PREF_FIRST_LANG_CODE, "");
 		currentSecondLangCode = sp.getString(I.PREF_SECOND_LANG_CODE, "");
-
-		if (currentFirstLangCode.isEmpty() || currentSecondLangCode.isEmpty()) {
-			String code = I.getUICode(ac);
-			currentFirstLangCode = languages.contains(code) ? code : "en";
-			currentSecondLangCode = currentFirstLangCode.equals("en") ? "ru" : "en";
-			saveCurrentLangs();
-		}
 	}
 
 
@@ -199,6 +192,13 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 	private void initTranslator(Languages languages) {
 		this.languages = languages;
+
+		if (currentFirstLangCode.isEmpty() || currentSecondLangCode.isEmpty()) {
+			String code = I.getUICode(ac);
+			currentFirstLangCode = languages.contains(code) ? code : "en";
+			currentSecondLangCode = currentFirstLangCode.equals("en") ? "ru" : "en";
+			saveCurrentLangs();
+		}
 
 		init(mainView);
 		updateLangButtons();
