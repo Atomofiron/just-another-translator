@@ -83,6 +83,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private ListAdapter favoriteAdapter;
 
 	private Cache<Node, DictionaryResponse> cache = new Cache<>(10);
+	private AsyncCall lastCall = null;
 
     public MainFragment() {}
 
@@ -366,7 +367,10 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		inputPhrase = text;
 		progressView.show();
 
-		new AsyncCall(new AsyncCall.ProcessListener() {
+		if (lastCall != null)
+			lastCall.cancel();
+
+		lastCall = new AsyncCall(new AsyncCall.ProcessListener() {
 			private Response response;
 
 			public boolean onBackgroundDone() {
@@ -391,7 +395,8 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 					progressView.hide();
 				}
 			}
-		}).execute();
+		});
+		lastCall.execute();
 	}
 
 	private void translate(final String value) {
@@ -403,7 +408,10 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		progressView.show();
 		translatedPhrase = null;
 
-		new AsyncCall(new AsyncCall.ProcessListener() {
+		if (lastCall != null)
+			lastCall.cancel();
+
+		lastCall = new AsyncCall(new AsyncCall.ProcessListener() {
 			private Response response;
 
 			public boolean onBackgroundDone() {
@@ -450,13 +458,17 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 				translateWord(value);
 			}
-		}).execute();
+		});
+		lastCall.execute();
 	}
 
 	private void translateWord(final String value) {
 		final String langs = getCurrentLangs();
 
-		new AsyncCall(new AsyncCall.ProcessListener() {
+		if (lastCall != null)
+			lastCall.cancel();
+
+		lastCall = new AsyncCall(new AsyncCall.ProcessListener() {
 			private Response response;
 
 			public boolean onBackgroundDone() {
@@ -476,7 +488,8 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 				} else
 					showTranslation();
 			}
-		}).execute();
+		});
+		lastCall.execute();
 	}
 
 	private void showTranslation() {

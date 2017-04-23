@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 public class AsyncCall extends AsyncTask<Void, Void, Integer> {
 
 	private ProcessListener processListener = null;
+	private boolean canceled = false;
 
 	public AsyncCall(ProcessListener listener) {
 		processListener = listener;
@@ -15,7 +16,7 @@ public class AsyncCall extends AsyncTask<Void, Void, Integer> {
 
 	@Override
 	protected Integer doInBackground(Void... params) {
-		while (!processListener.onBackgroundDone())
+		while (!processListener.onBackgroundDone() && !canceled)
 			try {
 				Thread.sleep(3000);
 			} catch (Exception ignored) {}
@@ -28,6 +29,10 @@ public class AsyncCall extends AsyncTask<Void, Void, Integer> {
 		super.onPostExecute(integer);
 
 		processListener.onDone();
+	}
+
+	public void cancel() {
+		canceled = true;
 	}
 
 	public interface ProcessListener {
