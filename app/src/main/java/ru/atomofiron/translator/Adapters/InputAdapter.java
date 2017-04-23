@@ -113,11 +113,11 @@ public class InputAdapter extends PagerAdapter implements ViewPager.OnPageChange
 		handler.removeMessages(0);
 
 		// автоматический перевод при вводе текста с задержкой в 1000 мс
-		String text = I.clearInput(s.toString());
+		final String text = I.clearInput(s.toString());
 		if (!text.isEmpty() && !text.equals(lastInputText)) {
-			lastInputText = text;
 			handler.postDelayed(new Runnable() {
 				public void run() {
+					lastInputText = text;
 					String str = s.toString();
 					onInputListener.onInput(str);
 					setText(str);
