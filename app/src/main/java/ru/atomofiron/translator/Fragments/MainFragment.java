@@ -27,14 +27,13 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import retrofit2.Response;
 import ru.atomofiron.translator.Adapters.ListAdapter;
 import ru.atomofiron.translator.Adapters.ViewPagerAdapter;
 import ru.atomofiron.translator.App;
 import ru.atomofiron.translator.CustomViews.ProgressView;
+import ru.atomofiron.translator.Utils.Cache;
 import ru.atomofiron.translator.Utils.I;
 import ru.atomofiron.translator.Adapters.InputAdapter;
 import ru.atomofiron.translator.R;
@@ -83,6 +82,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private ListAdapter favoriteAdapter;
 
 	private boolean needAddToHistoryAfterTranslate;
+	private Cache<Node, DictionaryResponse> cache = new Cache<>(10);
 
     public MainFragment() {}
 
@@ -332,7 +332,8 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		favoriteButton.setActivated(base.contains(getCurrentNode(Node.TYPE.FAVORITE)));
 	}
 
-	private void updateLangsAndTranslate(final String value) {
+	private void updateLangsAndTranslate(final String text) {
+		inputPhrase = text;
 		progressView.show();
 
 		new AsyncCall(new AsyncCall.ProcessListener() {
@@ -340,7 +341,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 			public boolean onBackgroundDone() {
 				try {
-					response = App.getApi().detect(I.API_KEY, value).execute();
+					response = App.getApi().detect(I.API_KEY, text).execute();
 				} catch (Exception ignored) {
 					return false;
 				}
@@ -352,15 +353,18 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 					translatedPhrase = null;
 					swapLangs();
 				}
-				translate(value);
+				translate(text);
 			}
 		}).execute();
 	}
 
 	private void translate(final String value) {
-		progressView.show();
-
 		inputPhrase = value;
+
+		if (wordInCache())
+			return;
+
+		progressView.show();
 		translatedPhrase = null;
 
 		new AsyncCall(new AsyncCall.ProcessListener() {
@@ -401,7 +405,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 				translatedPhrase = textBuilder.toString();
 				if (needAddToHistoryAfterTranslate)
 					addToHistory();
-				checkIfFavorite();
 
 				translateWord(value);
 			}
@@ -424,15 +427,19 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			}
 
 			public void onDone() {
-				if (response.isSuccessful())
-					showDictionary((DictionaryResponse) response.body());
-				else
+				if (response.isSuccessful()) {
+					DictionaryResponse dictionaryResponse = (DictionaryResponse) response.body();
+					addToCache(dictionaryResponse);
+					showDictionary(dictionaryResponse);
+				} else
 					showTranslation();
 			}
 		}).execute();
 	}
 
 	private void showTranslation() {
+		checkIfFavorite();
+
 		new SimpleAlphaAnimation(resultContainer).start(new SimpleAlphaAnimation.CallbackAnimHalfway() {
 			public void onAnimHalfway(View... views) {
 				progressView.hide();
@@ -450,6 +457,8 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		resultContainer.addView(yandexView);
 	}
 	private void showDictionary(final DictionaryResponse dictionaryResponse) {
+		checkIfFavorite();
+
 		new SimpleAlphaAnimation(resultContainer).start(new SimpleAlphaAnimation.CallbackAnimHalfway() {
 			public void onAnimHalfway(View... views) {
 				progressView.hide();
@@ -457,6 +466,23 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 				parseTranslate(dictionaryResponse);
 			}
 		});
+	}
+
+	private boolean wordInCache() {
+		Node node = getCurrentNode(Node.TYPE.HISTORY);
+
+		if (cache.containsKey(node)) {
+			translatedPhrase = cache.getKey(node).getTranslation();
+			showDictionary(cache.get(node));
+			return true;
+		}
+		return false;
+	}
+
+	private void addToCache(DictionaryResponse response) {
+		Node node = getCurrentNode(Node.TYPE.HISTORY);
+
+		cache.put(node, response);
 	}
 
 	private void parseTranslate(DictionaryResponse dictionaryResponse) {
@@ -566,11 +592,17 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		if (text.equals(inputPhrase))
 			return;
 
+		inputPhrase = text;
 		favoriteButton.setActivated(false);
-		inputPhrase = null;
+
+		if (wordInCache()) {
+			if (needAddToHistory)
+				addToHistory();
+
+			return;
+		}
 
 		if (!text.isEmpty()) {
-			inputPhrase = text;
 			this.needAddToHistoryAfterTranslate = needAddToHistory;
 			updateLangsAndTranslate(text);
 		} else
@@ -586,12 +618,13 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		currentSecondLangCode = dir[1];
 		updateLangButtons();
 
-		inputAdapter.add(node);
-
+		inputPhrase = node.getPhrase();
 		translatedPhrase = node.getTranslation();
-		printTranslation();
+		if (!wordInCache())
+			printTranslation();
 
 		viewPager.setCurrentItem(TRANSLATE_TAB_NUM);
 		inputAdapter.add(node);
+		translate(inputPhrase);
 	}
 }

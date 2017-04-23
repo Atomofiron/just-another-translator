@@ -48,8 +48,8 @@ public class Base {
 			init();
 
 		Cursor cursor = db.rawQuery("select * from " + TABLE_TRANSLATIONS +
-						" where " + CAL_PHRASE +"=? and "+ COL_TRANSLATION +"=? and "+ COL_DIR +"=? and "+ COL_TYPE +"=? ",
-				new String[] { node.getPhrase(), node.getTranslation(), node.getDirection(), node.getTypeString() });
+						" where " + CAL_PHRASE + "=? and "+ COL_DIR +"=? and "+ COL_TYPE +"=? ",
+				new String[] { node.getPhrase(), node.getDirection(), node.getTypeString() });
 
 		boolean contains = cursor.getCount() > 0;
 		cursor.close();

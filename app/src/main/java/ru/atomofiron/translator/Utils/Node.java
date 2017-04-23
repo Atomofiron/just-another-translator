@@ -48,9 +48,12 @@ public class Node {
 
 		Node node = (Node) obj;
 		return phrase.equals(node.phrase) &&
-				translation.equals(node.translation) &&
 				direction.equals(node.direction) &&
 				type.equals(node.type);
 	}
 
+	@Override
+	public String toString() {
+		return phrase+"_"+translation+"_"+direction+"_"+type;
+	}
 }
