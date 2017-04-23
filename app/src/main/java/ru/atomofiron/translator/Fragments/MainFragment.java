@@ -5,7 +5,6 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -95,39 +94,13 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		sp = I.SP(ac);
 		base = new Base(ac);
 
-		new AsyncCall(new AsyncCall.ProcessListener() {
-			private Response response;
-
-			/* нельзя вызывать (execute()) один и тот же объект запроса апи,
-			   поэтому таймер в AsynkCall, а создание очередного запроса здесь */
-			public boolean onBackgroundDone() {
-				try {
-					response = App.getApi().getLangs(I.API_KEY, I.getUICode(ac)).execute();
-				} catch (Exception ignored) {
-					return false;
-				}
-				return true;
-			}
-			public void onDone() {
-				LangsResponse langsResponse = (LangsResponse) response.body();
-
-				if (langsResponse.getCode() < 400)
-					initTranslator(new Languages(langsResponse.getLangs()));
-				else
-					I.Toast(ac, R.string.error);
-
-				progressView.hide();
-			}
-		}).execute();
-
 		currentFirstLangCode = sp.getString(I.PREF_FIRST_LANG_CODE, "");
 		currentSecondLangCode = sp.getString(I.PREF_SECOND_LANG_CODE, "");
 	}
 
 
 	@Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) { // вот щас вообще не до гранулированности коммитов
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
 		if (mainView != null)
 			return mainView;
@@ -150,26 +123,53 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		});
 		fab.hide();
 
+		new AsyncCall(new AsyncCall.ProcessListener() {
+			private Response response;
+
+			/* нельзя вызывать (execute()) один и тот же объект запроса апи,
+			   поэтому таймер в AsynkCall, а создание очередного запроса здесь */
+			public boolean onBackgroundDone() {
+				try {
+					response = App.getApi().getLangs(I.API_KEY, I.getUICode(ac)).execute();
+				} catch (Exception ignored) {
+					return false;
+				}
+				return true;
+			}
+			public void onDone() {
+				LangsResponse langsResponse = (LangsResponse) response.body();
+
+				if (langsResponse.getCode() < 400)
+					init(new Languages(langsResponse.getLangs()));
+				else
+					I.Toast(ac, R.string.error);
+
+				progressView.hide();
+			}
+		}).execute();
+
         return mainView;
     }
 
-    private void init(View view) {
-		progressView = (ProgressView) view.findViewById(R.id.progress_view);
+	private void init(Languages languages) {
+		this.languages = languages;
 
-		ViewPager inputPager = (ViewPager) view.findViewById(R.id.input_pager);
+		progressView = (ProgressView) mainView.findViewById(R.id.progress_view);
+
+		ViewPager inputPager = (ViewPager) mainView.findViewById(R.id.input_pager);
 		inputAdapter = new InputAdapter(ac, inputPager);
 		inputAdapter.setOnInputListener(this);
 		inputPager.setAdapter(inputAdapter);
 
-		firstLangButton = (Button) mainView.findViewById(R.id.first_language);
-		secondLangButton = (Button) mainView.findViewById(R.id.second_language);
+		firstLangButton = (Button) this.mainView.findViewById(R.id.first_language);
+		secondLangButton = (Button) this.mainView.findViewById(R.id.second_language);
 		firstLangButton.setOnClickListener(this);
 		secondLangButton.setOnClickListener(this);
-		View swapButton = mainView.findViewById(R.id.swap_langs);
+		View swapButton = this.mainView.findViewById(R.id.swap_langs);
 		swapButton.setVisibility(View.VISIBLE);
 		swapButton.setOnClickListener(this);
 
-		favoriteButton = (ImageButton) mainView.findViewById(R.id.btn_bookmark);
+		favoriteButton = (ImageButton) this.mainView.findViewById(R.id.btn_bookmark);
 		favoriteButton.setVisibility(View.VISIBLE);
 		favoriteButton.setOnClickListener(this);
 
@@ -192,7 +192,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		viewList.add(favoriteListView);
 
 		ViewPagerAdapter pagerAdapter = new ViewPagerAdapter(ac, viewList);
-		viewPager = (ViewPager) view.findViewById(R.id.view_pager);
+		viewPager = (ViewPager) mainView.findViewById(R.id.view_pager);
 		viewPager.setAdapter(pagerAdapter);
 		viewPager.setCurrentItem(TRANSLATE_TAB_NUM);
 		viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -212,19 +212,15 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 				}
 			}
 		});
-		((TabLayout) view.findViewById(R.id.tab_layout)).setupWithViewPager(viewPager);
+		((TabLayout) mainView.findViewById(R.id.tab_layout)).setupWithViewPager(viewPager);
 
 		resultContainer = (LinearLayout) scrollView.findViewById(R.id.result_container);
-		TextView yandexView = (TextView) view.findViewById(R.id.yandex_label);
+		TextView yandexView = (TextView) mainView.findViewById(R.id.yandex_label);
 		yandexView.setText(Html.fromHtml(ac.getString(R.string.yandex_label)));
 		yandexView.setMovementMethod(LinkMovementMethod.getInstance());
 
 		catView = (ImageView) inflater.inflate(R.layout.image_view_cat, resultContainer, false);
 		resultContainer.addView(catView);
-	}
-
-	private void initTranslator(Languages languages) {
-		this.languages = languages;
 
 		if (currentFirstLangCode.isEmpty() || currentSecondLangCode.isEmpty()) {
 			String code = I.getUICode(ac);
@@ -232,8 +228,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			currentSecondLangCode = currentFirstLangCode.equals("en") ? "ru" : "en";
 			saveCurrentLangs();
 		}
-
-		init(mainView);
 		updateLangButtons();
 	}
 
