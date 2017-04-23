@@ -1,10 +1,8 @@
 <resources>
     <string name="app_name">Ещё Переводчик</string>
-    <string name="action_settings">Настройки</string>
     <string name="input_hint">Введите текст</string>
     <string name="yandex_label">Переведено сервисом «&lt;a href="http://translate.yandex.ru/"&gt;Яндекс.Переводчик&lt;/a&gt;»</string>
     <string name="cancel">Отмена</string>
-    <string name="lang_hasnt_translation">Язык не имеет перевода</string>
     <string name="error">Ошибка</string>
     <string name="translation">Перевод</string>
     <string name="history">История</string>
