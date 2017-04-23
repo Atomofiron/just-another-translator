@@ -10,6 +10,7 @@ import android.widget.Toast;
 
 import ru.atomofiron.translator.BuildConfig;
 
+// класс для неклассифицированных полей и методов
 public class I {
 
 	public static final String API_KEY = "trnsl.1.1.20170419T031622Z.8e68bdd8f4d61856.840a8a3eeae258956ff37db9eb6d04d0a6b9d51d";
@@ -38,11 +39,17 @@ public class I {
 		return PreferenceManager.getDefaultSharedPreferences(co);
 	}
 
-	public static int getScreenWidth(Activity ac) {
-		DisplayMetrics metrics = new DisplayMetrics();
-		ac.getWindowManager().getDefaultDisplay().getMetrics(metrics);
+	public static String clearInput(String text) {
+		while (text.contains("\n\n"))
+			text = text.replace("\n\n", "\n");
 
-		return metrics.widthPixels;
+		if (text.startsWith("\n"))
+			text = text.substring(1);
+
+		if (text.endsWith("\n"))
+			text = text.substring(0, text.length() - 1);
+
+		return text;
 	}
 
 	public static String getUICode(Context co) {

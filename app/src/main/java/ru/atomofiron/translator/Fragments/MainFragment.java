@@ -10,8 +10,6 @@ import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
@@ -29,13 +27,13 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import retrofit2.Response;
+import ru.atomofiron.translator.Adapters.InputAdapter;
 import ru.atomofiron.translator.Adapters.ListAdapter;
 import ru.atomofiron.translator.Adapters.ViewPagerAdapter;
 import ru.atomofiron.translator.App;
 import ru.atomofiron.translator.CustomViews.ProgressView;
 import ru.atomofiron.translator.Utils.Cache;
 import ru.atomofiron.translator.Utils.I;
-import ru.atomofiron.translator.Adapters.InputAdapter;
 import ru.atomofiron.translator.R;
 import ru.atomofiron.translator.Utils.AsyncCall;
 import ru.atomofiron.translator.Utils.Base;
@@ -62,7 +60,6 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private SharedPreferences sp;
 	private Base base;
 
-	private RecyclerView recyclerView;
 	private Button firstLangButton;
 	private Button secondLangButton;
 	private ImageButton favoriteButton;
@@ -71,16 +68,15 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	private ViewPager viewPager;
 	private ImageView catView;
 
-	private InputAdapter inputAdapter;
 	private Languages languages;
 	private String currentFirstLangCode;
 	private String currentSecondLangCode;
 	private String inputPhrase;
 	private String translatedPhrase;
+	private InputAdapter inputAdapter;
 	private ListAdapter historyAdapter;
 	private ListAdapter favoriteAdapter;
 
-	private boolean needAddToHistoryAfterTranslate;
 	private Cache<Node, DictionaryResponse> cache = new Cache<>(10);
 
     public MainFragment() {}
@@ -131,13 +127,11 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
     private void init(View view) {
 		progressView = (ProgressView) view.findViewById(R.id.progress_view);
-		recyclerView = (RecyclerView) view.findViewById(R.id.input_recycler_view);
 
-		recyclerView.setLayoutManager
-				(new LinearLayoutManager(ac, LinearLayoutManager.HORIZONTAL, false));
-		inputAdapter = new InputAdapter(recyclerView, base, I.getScreenWidth(ac));
-		recyclerView.setAdapter(inputAdapter);
+		ViewPager inputPager = (ViewPager) view.findViewById(R.id.input_pager);
+		inputAdapter = new InputAdapter(ac, inputPager);
 		inputAdapter.setOnInputListener(this);
+		inputPager.setAdapter(inputAdapter);
 
 		firstLangButton = (Button) mainView.findViewById(R.id.first_language);
 		secondLangButton = (Button) mainView.findViewById(R.id.second_language);
@@ -259,7 +253,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		updateLangButtons();
 
 		if (translatedPhrase != null) {
-			inputAdapter.setCurrentText(translatedPhrase);
+			inputAdapter.setText(translatedPhrase);
 			translate(translatedPhrase);
 		}
 	}
@@ -397,8 +391,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 				}
 
 				translatedPhrase = textBuilder.toString();
-				if (needAddToHistoryAfterTranslate)
-					addToHistory();
+				addToHistory();
 
 				translateWord(value);
 			}
@@ -580,7 +573,7 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 	}
 
 	@Override
-	public void onInput(String text, boolean needAddToHistory) {
+	public void onInput(String text) {
 		if (text.equals(inputPhrase))
 			return;
 
@@ -588,15 +581,15 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 		favoriteButton.setActivated(false);
 
 		if (wordInCache()) {
-			if (needAddToHistory)
+			if (!text.isEmpty())
 				addToHistory();
 
 			return;
 		}
 
 		if (!text.isEmpty()) {
-			this.needAddToHistoryAfterTranslate = needAddToHistory;
 			updateLangsAndTranslate(text);
+			viewPager.setCurrentItem(TRANSLATE_TAB_NUM);
 		} else
 			clearResult();
 	}
@@ -612,11 +605,13 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 		inputPhrase = node.getPhrase();
 		translatedPhrase = node.getTranslation();
-		if (!wordInCache())
-			printTranslation();
 
 		viewPager.setCurrentItem(TRANSLATE_TAB_NUM);
-		inputAdapter.add(node.getPhrase());
-		translate(inputPhrase);
+		inputAdapter.setText(node.getPhrase());
+
+		if (!wordInCache()) {
+			printTranslation();
+			translate(inputPhrase);
+		}
 	}
 }

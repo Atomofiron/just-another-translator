@@ -78,8 +78,8 @@ public class ListAdapter extends BaseAdapter implements View.OnClickListener {
 		holder.icon.setImageDrawable(co.getResources().getDrawable(
 				node.isHistory() ? R.drawable.ic_trashbox : R.drawable.ic_bookmark_selector));
 		holder.icon.setActivated(true);
-		holder.title.setText(node.getPhrase());
-		holder.subtitle.setText(node.getTranslation());
+		holder.title.setText(node.getPhrase().replace("\n", " "));
+		holder.subtitle.setText(node.getTranslation().replace("\n", " "));
 
 		return convertView;
 	}
