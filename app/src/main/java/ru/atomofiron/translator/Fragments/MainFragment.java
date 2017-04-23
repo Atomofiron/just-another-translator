@@ -108,14 +108,19 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 				return true;
 			}
 			public void onDone() {
-				initTranslator(new Languages(((LangsResponse) response.body()).getLangs()));
+				LangsResponse langsResponse = (LangsResponse) response.body();
+
+				if (langsResponse.getCode() < 400)
+					initTranslator(new Languages(langsResponse.getLangs()));
+				else
+					I.Toast(ac, R.string.error);
+
 				progressView.hide();
 			}
 		}).execute();
 
 		currentFirstLangCode = sp.getString(I.PREF_FIRST_LANG_CODE, "");
 		currentSecondLangCode = sp.getString(I.PREF_SECOND_LANG_CODE, "");
-
 	}
 
 
@@ -374,11 +379,17 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			}
 
 			public void onDone() {
-				if (currentSecondLangCode.equals(((DetectResponse) response.body()).getLang())) {
-					translatedPhrase = null;
-					swapLangs();
+				DetectResponse detectResponse = (DetectResponse) response.body();
+				if (detectResponse.getCode() == 200) {
+					if (currentSecondLangCode.equals(detectResponse.getLang())) {
+						translatedPhrase = null;
+						swapLangs();
+					}
+					translate(text);
+				} else {
+					I.Toast(ac, R.string.error);
+					progressView.hide();
 				}
-				translate(text);
 			}
 		}).execute();
 	}
@@ -406,6 +417,13 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 
 			public void onDone() {
 				TranslateResponse translateResponse = (TranslateResponse) response.body();
+
+				if (translateResponse.getCode() != 200) {
+					I.Toast(ac, R.string.error);
+					progressView.hide();
+					return;
+				}
+
 				String[] langs = translateResponse.getLang().split("-");
 
 				if (!currentFirstLangCode.equals(langs[0])) {
@@ -451,8 +469,8 @@ public class MainFragment extends Fragment implements InputAdapter.OnInputListen
 			}
 
 			public void onDone() {
-				if (response.isSuccessful()) {
-					DictionaryResponse dictionaryResponse = (DictionaryResponse) response.body();
+				DictionaryResponse dictionaryResponse = (DictionaryResponse) response.body();
+				if (dictionaryResponse.getDef() != null) {
 					addToCache(dictionaryResponse);
 					showDictionary(dictionaryResponse);
 				} else
