@@ -104,7 +104,7 @@ public class InputAdapter extends RecyclerView.Adapter<InputAdapter.ViewHolder> 
 	public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 		if (actionId == KeyEvent.KEYCODE_ENDCALL) {
 			String phrase = v.getText().toString();
-			phrases.add(phrase);
+			add(phrase);
 
 			if (onInputListener != null)
 				onInputListener.onInput(v.getText().toString(), true);
